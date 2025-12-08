@@ -297,6 +297,19 @@ app.post('/api/breakdown', authenticateToken, requireRole(['admin', 'inputer']),
 
         const equipment_id = equipmentRows[0].id;
 
+        // Normalize kategori_perawatan to match database ENUM format (Service, PMS, Storing)
+        let normalizedKategori = kategori_perawatan;
+        if (kategori_perawatan) {
+            const kategoriLower = kategori_perawatan.toLowerCase();
+            if (kategoriLower === 'service') {
+                normalizedKategori = 'Service';
+            } else if (kategoriLower === 'pms') {
+                normalizedKategori = 'PMS';
+            } else if (kategoriLower === 'storing') {
+                normalizedKategori = 'Storing';
+            }
+        }
+
         const [result] = await pool.execute(`
             INSERT INTO breakdown_data (
                 tanggal, shift, equipment_id, equipment_number, kode, lokasi, hm_breakdown,
@@ -308,7 +321,7 @@ app.post('/api/breakdown', authenticateToken, requireRole(['admin', 'inputer']),
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             tanggal, shift, equipment_id, equipment_number, kode, lokasi, hm_breakdown,
-            jam_mulai, jam_selesai, kategori_perawatan, pelapor_bd, work_order,
+            jam_mulai, jam_selesai, normalizedKategori, pelapor_bd, work_order,
             wr_pr, tipe_bd, note_ccr, note_plant, km, komponen, problem,
             estimasi_1, estimasi_2, estimasi_3, penerima_rfu, aktivitas,
             detail_aktivitas, jam_aktivitas, rfu, hm_rfu_1, pelapor_rfu,
@@ -330,6 +343,18 @@ app.put('/api/breakdown/:id', authenticateToken, requireRole(['admin', 'inputer'
 
         // Remove id from updateData if present
         delete updateData.id;
+        
+        // Normalize kategori_perawatan if present
+        if (updateData.kategori_perawatan) {
+            const kategoriLower = updateData.kategori_perawatan.toLowerCase();
+            if (kategoriLower === 'service') {
+                updateData.kategori_perawatan = 'Service';
+            } else if (kategoriLower === 'pms') {
+                updateData.kategori_perawatan = 'PMS';
+            } else if (kategoriLower === 'storing') {
+                updateData.kategori_perawatan = 'Storing';
+            }
+        }
         
         // Add updated_by field
         updateData.updated_by = req.user.id;

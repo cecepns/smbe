@@ -148,13 +148,24 @@ const BreakdownPage = ({ isNew }) => {
   };
 
   const getCategoryBadge = (category) => {
+    if (!category) {
+      return (
+        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+          Unknown
+        </span>
+      );
+    }
+    
+    // Convert to lowercase for case-insensitive matching
+    const categoryLower = category.toLowerCase();
+    
     const categoryConfig = {
       service: { color: 'bg-blue-100 text-blue-800', text: 'Service' },
       pms: { color: 'bg-purple-100 text-purple-800', text: 'PMS' },
       storing: { color: 'bg-orange-100 text-orange-800', text: 'Storing' }
     };
     
-    const config = categoryConfig[category] || { color: 'bg-gray-100 text-gray-800', text: 'Unknown' };
+    const config = categoryConfig[categoryLower] || { color: 'bg-gray-100 text-gray-800', text: 'Unknown' };
     
     return (
       <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${config.color}`}>
