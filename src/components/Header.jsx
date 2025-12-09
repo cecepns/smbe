@@ -25,7 +25,7 @@ const Header = ({ title, subtitle }) => {
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4 md:gap-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
           {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
@@ -33,10 +33,10 @@ const Header = ({ title, subtitle }) => {
         
         <div className="flex items-center space-x-4">
           {/* Notifications */}
-          <button className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors">
+          {/* <button className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors">
             <Bell className="h-5 w-5" />
             <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
-          </button>
+          </button> */}
           
           {/* User Menu */}
           <div className="relative group">
@@ -51,7 +51,7 @@ const Header = ({ title, subtitle }) => {
             </button>
             
             {/* Dropdown */}
-            <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div className="absolute left-0 md:-left-20 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
               <div className="p-4 border-b border-gray-100">
                 <div className="flex items-center space-x-3">
                   <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center">

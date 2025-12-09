@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home,
@@ -15,13 +15,41 @@ import {
   Monitor,
   Clock,
   TrendingUp,
-  UserCog
+  UserCog,
+  Menu,
+  X
 } from 'lucide-react';
 import authService from '../services/authService';
 
 const Sidebar = () => {
   const location = useLocation();
   const user = authService.getUser();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleClose = () => {
+    setIsMobileMenuOpen(false);
+  };
 
   const navigation = [
     {
@@ -176,16 +204,24 @@ const Sidebar = () => {
       : `${baseClass} text-gray-500 group-hover:text-primary-600`;
   };
 
-  return (
-    <div className="flex flex-col w-64 bg-white border-r border-gray-200 min-h-screen">
+  const sidebarContent = (
+    <div className="flex flex-col w-64 bg-white border-r border-gray-200 min-h-screen lg:min-h-0 h-full">
       {/* Logo */}
-      <div className="flex items-center justify-center h-16 px-4 bg-primary-700">
+      <div className="flex items-center justify-between h-16 px-4 bg-primary-700">
         <div className="flex items-center space-x-2">
           <Database className="h-8 w-8 text-white" />
           <div className="text-white font-bold text-lg">
             SMBE
           </div>
         </div>
+        {/* Close button for mobile */}
+        <button
+          onClick={handleClose}
+          className="lg:hidden text-white hover:text-gray-200 transition-colors p-1"
+          aria-label="Close menu"
+        >
+          <X className="h-6 w-6" />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -199,6 +235,7 @@ const Sidebar = () => {
                 key={item.name}
                 to={item.href}
                 className={getLinkClass(item.href)}
+                onClick={handleClose}
               >
                 <Icon className={getIconClass(item.href)} />
                 {item.name}
@@ -222,6 +259,7 @@ const Sidebar = () => {
                   key={item.name}
                   to={item.href}
                   className={getLinkClass(item.href)}
+                  onClick={handleClose}
                 >
                   <Icon className={getIconClass(item.href)} />
                   {item.name}
@@ -249,6 +287,41 @@ const Sidebar = () => {
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={toggleMobileMenu}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-primary-600 text-white rounded-md shadow-lg hover:bg-primary-700 transition-colors"
+        aria-label="Open menu"
+      >
+        <Menu className="h-6 w-6" />
+      </button>
+
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
+          onClick={handleClose}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar - Mobile: Fixed overlay, Desktop: Normal */}
+      <div
+        className={`
+          fixed lg:static
+          inset-y-0 left-0
+          z-40
+          transform transition-transform duration-300 ease-in-out
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}
+      >
+        {sidebarContent}
+      </div>
+    </>
   );
 };
 

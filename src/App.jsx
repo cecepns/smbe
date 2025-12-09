@@ -32,10 +32,12 @@ const ProtectedRoute = ({ children }) => {
 // eslint-disable-next-line react/prop-types
 const MainLayout = ({ children }) => {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 relative">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {children}
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
+        <div className="flex-1 overflow-y-auto pt-16 lg:pt-0">
+          {children}
+        </div>
       </div>
     </div>
   );
