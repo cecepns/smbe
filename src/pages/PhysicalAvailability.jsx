@@ -144,15 +144,15 @@ const PhysicalAvailability = () => {
         setPaData(paArray);
       }
 
-      // Calculate summary from detail data
-      if (paDetailData.length > 0) {
-        const totalActiveHours = paDetailData.reduce((sum, item) => sum + item.total_active_hours, 0);
-        const totalDowntimeHours = paDetailData.reduce((sum, item) => sum + item.total_downtime_hours, 0);
-        const avgPA = paDetailData.reduce((sum, item) => sum + parseFloat(item.pa), 0) / paDetailData.length;
-        const totalBreakdowns = paDetailData.reduce((sum, item) => sum + item.breakdown_count, 0);
+      // Calculate summary from freshly computed detail data
+      if (paArray.length > 0) {
+        const totalActiveHours = paArray.reduce((sum, item) => sum + item.total_active_hours, 0);
+        const totalDowntimeHours = paArray.reduce((sum, item) => sum + item.total_downtime_hours, 0);
+        const avgPA = paArray.reduce((sum, item) => sum + parseFloat(item.pa), 0) / paArray.length;
+        const totalBreakdowns = paArray.reduce((sum, item) => sum + item.breakdown_count, 0);
 
         setSummary({
-          total_equipment: paDetailData.length,
+          total_equipment: paArray.length,
           total_active_hours: totalActiveHours,
           total_downtime_hours: totalDowntimeHours,
           average_pa: avgPA.toFixed(2),
@@ -177,7 +177,7 @@ const PhysicalAvailability = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters, viewMode, paDetailData]);
+  }, [filters, viewMode]);
 
   useEffect(() => {
     loadData();
