@@ -123,30 +123,56 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
+        // Try to fetch position and additional location from mechanic_master using user's name or email
+        let position = null;
+        let mechanicLocation = null;
+        try {
+            const [mechanics] = await pool.execute(
+                'SELECT level as position, location_id, lm.name as location_name FROM mechanic_master mm LEFT JOIN location_master lm ON mm.location_id = lm.id WHERE mm.email = ? OR mm.name = ? LIMIT 1',
+                [user.email, user.name]
+            );
+            if (mechanics.length > 0) {
+                position = mechanics[0].position;
+                mechanicLocation = mechanics[0].location_name;
+            }
+        } catch (mechError) {
+            console.error('Error fetching mechanic data:', mechError);
+            // Continue without position/location if query fails
+        }
+
+        // Use mechanic location if available, otherwise use user location
+        const finalLocation = mechanicLocation || user.location || null;
+
         // Update last login
         await pool.execute(
             'UPDATE users SET last_login = NOW() WHERE id = ?',
             [user.id]
         );
 
-        // Generate JWT token
+        // Generate JWT token with position and location
         const token = jwt.sign(
             { 
                 id: user.id, 
                 email: user.email, 
                 role: user.role, 
-                location: user.location || null 
+                location: finalLocation,
+                position: position
             },
             JWT_SECRET,
             { expiresIn: '24h' }
         );
 
-        // Remove password from response
+        // Remove password from response and add position
         const { password: _, ...userWithoutPassword } = user;
+        const userResponse = {
+            ...userWithoutPassword,
+            position: position,
+            location: finalLocation
+        };
         
         res.json({
             token,
-            user: userWithoutPassword
+            user: userResponse
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -175,10 +201,12 @@ app.get('/api/breakdown', authenticateToken, async (req, res) => {
         
         // Location-based access control
         const userLocation = req.user.location;
+        const userRole = req.user.role;
         let locationFilter = location;
         
         // If user has location restriction and is not admin, filter by user location
-        if (userLocation && req.user.role !== 'admin') {
+        // Applies to inputer role as well
+        if (userLocation && !['admin'].includes(userRole)) {
             locationFilter = userLocation;
         }
         
@@ -941,7 +969,7 @@ app.delete('/api/spare-parts/:id', authenticateToken, requireRole(['admin']), as
 // PETTY CASH ROUTES
 // =============================================
 
-app.get('/api/petty-cash', authenticateToken, async (req, res) => {
+app.get('/api/petty-cash', authenticateToken, requireRole(['admin', 'viewer']), async (req, res) => {
     try {
         const { breakdown_id, expense_type, date_from, date_to, limit = 10, offset = 0 } = req.query;
         
@@ -1014,7 +1042,7 @@ app.get('/api/petty-cash', authenticateToken, async (req, res) => {
     }
 });
 
-app.post('/api/petty-cash', authenticateToken, requireRole(['admin', 'inputer']), async (req, res) => {
+app.post('/api/petty-cash', authenticateToken, requireRole(['admin']), async (req, res) => {
     try {
         const {
             breakdown_id, expense_date, expense_type, description, amount,
@@ -1041,7 +1069,7 @@ app.post('/api/petty-cash', authenticateToken, requireRole(['admin', 'inputer'])
     }
 });
 
-app.put('/api/petty-cash/:id', authenticateToken, requireRole(['admin', 'inputer']), async (req, res) => {
+app.put('/api/petty-cash/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
     try {
         const { id } = req.params;
         const updateData = req.body;
@@ -1344,21 +1372,404 @@ app.delete('/api/users/:id', authenticateToken, requireRole(['admin']), async (r
 // DASHBOARD ROUTES
 // =============================================
 
+// Get dashboard statistics
 app.get('/api/dashboard/stats', authenticateToken, async (req, res) => {
     try {
-        // Mock dashboard stats - replace with real queries
+        // Current month stats (last 30 days)
+        // Total Equipment (active)
+        const [equipmentCount] = await pool.execute(
+            'SELECT COUNT(*) as total FROM equipment_master WHERE is_active = true'
+        );
+        const totalEquipment = equipmentCount[0].total;
+
+        // Equipment Broken (breakdown with rfu = null or empty, or status = breakdown)
+        const [brokenCount] = await pool.execute(`
+            SELECT COUNT(DISTINCT bd.equipment_id) as total
+            FROM breakdown_data bd
+            WHERE (bd.rfu IS NULL OR bd.rfu = '' OR bd.rfu = '0')
+            AND bd.tanggal >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        `);
+        const equipmentBroken = brokenCount[0].total || 0;
+
+        // Equipment Ready (total - broken)
+        const equipmentReady = Math.max(0, totalEquipment - equipmentBroken);
+
+        // Total Mechanics (active)
+        const [mechanicsCount] = await pool.execute(
+            'SELECT COUNT(*) as total FROM mechanic_master WHERE is_active = true'
+        );
+        const totalMechanics = mechanicsCount[0].total;
+
+        // Total Cost (from spare parts + petty cash in last 30 days)
+        const [costResult] = await pool.execute(`
+            SELECT 
+                COALESCE(SUM(spi.total_price), 0) + COALESCE(SUM(pc.amount), 0) as total_cost
+            FROM breakdown_data bd
+            LEFT JOIN spare_parts_inout spi ON bd.id = spi.breakdown_id
+            LEFT JOIN petty_cash pc ON bd.id = pc.breakdown_id
+            WHERE bd.tanggal >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        `);
+        const totalCost = parseFloat(costResult[0].total_cost) || 0;
+
+        // Average Repair Time (in hours, from breakdowns with jam_mulai and jam_selesai)
+        const [repairTimeResult] = await pool.execute(`
+            SELECT 
+                AVG(TIMESTAMPDIFF(HOUR, 
+                    CONCAT(bd.tanggal, ' ', bd.jam_mulai),
+                    CONCAT(bd.tanggal, ' ', bd.jam_selesai)
+                )) as avg_repair_time
+            FROM breakdown_data bd
+            WHERE bd.jam_mulai IS NOT NULL 
+            AND bd.jam_selesai IS NOT NULL
+            AND bd.jam_mulai != ''
+            AND bd.jam_selesai != ''
+            AND bd.tanggal >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        `);
+        const averageRepairTime = parseFloat(repairTimeResult[0].avg_repair_time) || 0;
+
+        // Previous month stats (30-60 days ago) for comparison
+        const [prevEquipmentCount] = await pool.execute(
+            'SELECT COUNT(*) as total FROM equipment_master WHERE is_active = true'
+        );
+        const prevTotalEquipment = prevEquipmentCount[0].total;
+
+        const [prevBrokenCount] = await pool.execute(`
+            SELECT COUNT(DISTINCT bd.equipment_id) as total
+            FROM breakdown_data bd
+            WHERE (bd.rfu IS NULL OR bd.rfu = '' OR bd.rfu = '0')
+            AND bd.tanggal >= DATE_SUB(NOW(), INTERVAL 60 DAY)
+            AND bd.tanggal < DATE_SUB(NOW(), INTERVAL 30 DAY)
+        `);
+        const prevEquipmentBroken = prevBrokenCount[0].total || 0;
+        const prevEquipmentReady = Math.max(0, prevTotalEquipment - prevEquipmentBroken);
+
+        const [prevMechanicsCount] = await pool.execute(
+            'SELECT COUNT(*) as total FROM mechanic_master WHERE is_active = true'
+        );
+        const prevTotalMechanics = prevMechanicsCount[0].total;
+
+        const [prevCostResult] = await pool.execute(`
+            SELECT 
+                COALESCE(SUM(spi.total_price), 0) + COALESCE(SUM(pc.amount), 0) as total_cost
+            FROM breakdown_data bd
+            LEFT JOIN spare_parts_inout spi ON bd.id = spi.breakdown_id
+            LEFT JOIN petty_cash pc ON bd.id = pc.breakdown_id
+            WHERE bd.tanggal >= DATE_SUB(NOW(), INTERVAL 60 DAY)
+            AND bd.tanggal < DATE_SUB(NOW(), INTERVAL 30 DAY)
+        `);
+        const prevTotalCost = parseFloat(prevCostResult[0].total_cost) || 0;
+
+        // Calculate percentage changes
+        const calculateChange = (current, previous) => {
+            if (!previous || previous === 0) return null;
+            const change = ((current - previous) / previous) * 100;
+            return Math.round(change * 10) / 10;
+        };
+
+        const equipmentChange = calculateChange(totalEquipment, prevTotalEquipment);
+        const brokenChange = calculateChange(equipmentBroken, prevEquipmentBroken);
+        const readyChange = calculateChange(equipmentReady, prevEquipmentReady);
+        const costChange = calculateChange(totalCost, prevTotalCost);
+
         const stats = {
-            totalEquipment: 48,
-            equipmentBroken: 5,
-            equipmentReady: 43,
-            totalMechanics: 12,
-            totalCost: 125000000,
-            averageRepairTime: 4.5
+            totalEquipment,
+            equipmentBroken,
+            equipmentReady,
+            totalMechanics,
+            totalCost,
+            averageRepairTime: Math.round(averageRepairTime * 10) / 10,
+            activeMechanics: totalMechanics, // For subtitle display
+            changes: {
+                totalEquipment: equipmentChange,
+                equipmentBroken: brokenChange,
+                equipmentReady: readyChange,
+                totalCost: costChange
+            }
         };
 
         res.json(stats);
     } catch (error) {
         console.error('Get dashboard stats error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Get breakdown trends (last 6 months)
+app.get('/api/dashboard/breakdown-trends', authenticateToken, async (req, res) => {
+    try {
+        const [trends] = await pool.execute(`
+            SELECT 
+                DATE_FORMAT(tanggal, '%b') as month,
+                DATE_FORMAT(tanggal, '%Y-%m') as month_key,
+                COUNT(*) as breakdowns,
+                SUM(CASE WHEN rfu IS NOT NULL AND rfu != '' AND rfu != '0' THEN 1 ELSE 0 END) as repairs
+            FROM breakdown_data
+            WHERE tanggal >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+            GROUP BY DATE_FORMAT(tanggal, '%Y-%m'), DATE_FORMAT(tanggal, '%b')
+            ORDER BY month_key ASC
+        `);
+
+        // Format for frontend
+        const formattedTrends = trends.map(t => ({
+            month: t.month,
+            breakdowns: t.breakdowns,
+            repairs: t.repairs
+        }));
+
+        res.json(formattedTrends);
+    } catch (error) {
+        console.error('Get breakdown trends error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Get equipment status distribution
+app.get('/api/dashboard/equipment-status', authenticateToken, async (req, res) => {
+    try {
+        // Total active equipment
+        const [totalResult] = await pool.execute(
+            'SELECT COUNT(*) as total FROM equipment_master WHERE is_active = true'
+        );
+        const totalEquipment = totalResult[0].total;
+
+        // Equipment with active breakdown (no RFU or RFU = 0)
+        const [brokenResult] = await pool.execute(`
+            SELECT COUNT(DISTINCT bd.equipment_id) as total
+            FROM breakdown_data bd
+            WHERE (bd.rfu IS NULL OR bd.rfu = '' OR bd.rfu = '0')
+            AND bd.tanggal >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        `);
+        const broken = brokenResult[0].total || 0;
+
+        // Equipment ready (total - broken)
+        const ready = Math.max(0, totalEquipment - broken);
+
+        // Equipment in maintenance (breakdown with RFU but not completed)
+        const [maintenanceResult] = await pool.execute(`
+            SELECT COUNT(DISTINCT bd.equipment_id) as total
+            FROM breakdown_data bd
+            WHERE bd.rfu IS NOT NULL AND bd.rfu != '' AND bd.rfu != '0'
+            AND (bd.jam_selesai IS NULL OR bd.jam_selesai = '')
+            AND bd.tanggal >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        `);
+        const maintenance = maintenanceResult[0].total || 0;
+
+        const status = [
+            { name: 'Ready', value: ready, color: '#10B981' },
+            { name: 'Breakdown', value: broken, color: '#EF4444' },
+            { name: 'Maintenance', value: maintenance, color: '#F59E0B' }
+        ];
+
+        res.json(status);
+    } catch (error) {
+        console.error('Get equipment status error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Get mechanic utilization
+app.get('/api/dashboard/mechanic-utilization', authenticateToken, async (req, res) => {
+    try {
+        const [utilization] = await pool.execute(`
+            SELECT 
+                mm.name,
+                COUNT(DISTINCT bd.id) as breakdown_count,
+                SUM(
+                    CASE 
+                        WHEN bd.jam_mulai IS NOT NULL AND bd.jam_selesai IS NOT NULL 
+                        AND bd.jam_mulai != '' AND bd.jam_selesai != ''
+                        THEN TIMESTAMPDIFF(HOUR, 
+                            CONCAT(bd.tanggal, ' ', bd.jam_mulai),
+                            CONCAT(bd.tanggal, ' ', bd.jam_selesai)
+                        )
+                        ELSE 0
+                    END
+                ) as total_hours,
+                COUNT(DISTINCT bd.id) * 8 as available_hours
+            FROM mechanic_master mm
+            LEFT JOIN breakdown_data bd ON mm.name = bd.aktivitas
+            WHERE mm.is_active = true
+            AND (bd.tanggal IS NULL OR bd.tanggal >= DATE_SUB(NOW(), INTERVAL 30 DAY))
+            GROUP BY mm.id, mm.name
+            ORDER BY total_hours DESC
+            LIMIT 10
+        `);
+
+        const formattedUtilization = utilization.map(u => {
+            const hours = parseFloat(u.total_hours) || 0;
+            const available = parseFloat(u.available_hours) || 1;
+            const utilizationPercent = Math.round((hours / available) * 100);
+            
+            return {
+                name: u.name,
+                hours: Math.round(hours),
+                utilization: Math.min(100, Math.max(0, utilizationPercent))
+            };
+        });
+
+        res.json(formattedUtilization);
+    } catch (error) {
+        console.error('Get mechanic utilization error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Get cost analysis
+app.get('/api/dashboard/cost-analysis', authenticateToken, async (req, res) => {
+    try {
+        const [costAnalysis] = await pool.execute(`
+            SELECT 
+                'Spare Parts' as category,
+                COALESCE(SUM(spi.total_price), 0) as amount
+            FROM breakdown_data bd
+            LEFT JOIN spare_parts_inout spi ON bd.id = spi.breakdown_id
+            WHERE bd.tanggal >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            AND spi.transaction_type = 'out'
+            
+            UNION ALL
+            
+            SELECT 
+                'Transport' as category,
+                COALESCE(SUM(pc.amount), 0) as amount
+            FROM breakdown_data bd
+            LEFT JOIN petty_cash pc ON bd.id = pc.breakdown_id
+            WHERE bd.tanggal >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            AND pc.expense_type IN ('tol', 'bensin', 'parkir')
+            
+            UNION ALL
+            
+            SELECT 
+                'Accommodation' as category,
+                COALESCE(SUM(pc.amount), 0) as amount
+            FROM breakdown_data bd
+            LEFT JOIN petty_cash pc ON bd.id = pc.breakdown_id
+            WHERE bd.tanggal >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            AND pc.expense_type IN ('inap', 'makan')
+            
+            UNION ALL
+            
+            SELECT 
+                'Others' as category,
+                COALESCE(SUM(pc.amount), 0) as amount
+            FROM breakdown_data bd
+            LEFT JOIN petty_cash pc ON bd.id = pc.breakdown_id
+            WHERE bd.tanggal >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            AND pc.expense_type = 'lainnya'
+        `);
+
+        const formattedCostAnalysis = costAnalysis.map(c => ({
+            category: c.category,
+            amount: parseFloat(c.amount) || 0
+        }));
+
+        res.json(formattedCostAnalysis);
+    } catch (error) {
+        console.error('Get cost analysis error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Get recent activities
+app.get('/api/dashboard/recent-activities', authenticateToken, async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 10;
+        
+        // Get recent breakdowns
+        const [breakdowns] = await pool.execute(`
+            SELECT 
+                'breakdown' as type,
+                CONCAT('Equipment ', bd.equipment_number, ' mengalami breakdown') as message,
+                bd.created_at as activity_time,
+                'red' as status
+            FROM breakdown_data bd
+            ORDER BY bd.created_at DESC
+            LIMIT ?
+        `, [Math.ceil(limit / 2)]);
+
+        // Get recent repairs (breakdowns with RFU)
+        const [repairs] = await pool.execute(`
+            SELECT 
+                'repair' as type,
+                CONCAT('Perbaikan ', bd.equipment_number, ' telah selesai') as message,
+                bd.updated_at as activity_time,
+                'green' as status
+            FROM breakdown_data bd
+            WHERE bd.rfu IS NOT NULL AND bd.rfu != '' AND bd.rfu != '0'
+            AND bd.updated_at IS NOT NULL
+            ORDER BY bd.updated_at DESC
+            LIMIT ?
+        `, [Math.ceil(limit / 4)]);
+
+        // Get recent spare parts transactions
+        const [spareParts] = await pool.execute(`
+            SELECT 
+                'part' as type,
+                CONCAT('Spare part untuk ', bd.equipment_number, ' telah ', 
+                    CASE WHEN spi.transaction_type = 'in' THEN 'tersedia' 
+                         WHEN spi.transaction_type = 'out' THEN 'digunakan'
+                         ELSE 'dikembalikan' END) as message,
+                spi.transaction_date as activity_time,
+                CASE WHEN spi.transaction_type = 'in' THEN 'blue' ELSE 'yellow' END as status
+            FROM spare_parts_inout spi
+            LEFT JOIN breakdown_data bd ON spi.breakdown_id = bd.id
+            WHERE spi.transaction_date IS NOT NULL
+            ORDER BY spi.transaction_date DESC
+            LIMIT ?
+        `, [Math.ceil(limit / 4)]);
+
+        // Combine all activities and sort by time
+        const allActivities = [
+            ...breakdowns.map(b => ({
+                type: b.type,
+                message: b.message,
+                time: b.activity_time,
+                status: b.status
+            })),
+            ...repairs.map(r => ({
+                type: r.type,
+                message: r.message,
+                time: r.activity_time,
+                status: r.status
+            })),
+            ...spareParts.map(s => ({
+                type: s.type,
+                message: s.message,
+                time: s.activity_time,
+                status: s.status
+            }))
+        ];
+
+        // Sort by time descending and limit
+        allActivities.sort((a, b) => new Date(b.time) - new Date(a.time));
+        const recentActivities = allActivities.slice(0, limit);
+
+        // Format time relative to now
+        const formatRelativeTime = (dateTime) => {
+            const now = new Date();
+            const activityTime = new Date(dateTime);
+            const diffMs = now - activityTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Baru saja';
+            if (diffMins < 60) return `${diffMins} menit yang lalu`;
+            if (diffHours < 24) return `${diffHours} jam yang lalu`;
+            if (diffDays === 1) return '1 hari yang lalu';
+            if (diffDays < 7) return `${diffDays} hari yang lalu`;
+            return activityTime.toLocaleDateString('id-ID');
+        };
+
+        const formattedActivities = recentActivities.map(activity => ({
+            type: activity.type,
+            message: activity.message,
+            time: formatRelativeTime(activity.time),
+            status: activity.status
+        }));
+
+        res.json(formattedActivities);
+    } catch (error) {
+        console.error('Get recent activities error:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });

@@ -10,6 +10,8 @@ const DisplayMode = () => {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(60000); // 1 minute (60 seconds)
   const [darkMode, setDarkMode] = useState(false); // Default to light mode
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage] = useState(10); // Show 10 units per page for better visibility
   
   // Auto-refresh configuration - can be changed via query params
   useEffect(() => {
@@ -74,6 +76,21 @@ const DisplayMode = () => {
 
     return () => clearInterval(interval);
   }, [autoRefresh, refreshInterval, loadData]);
+
+  // Auto-scroll pages when there are more than itemsPerPage units
+  useEffect(() => {
+    if (!autoRefresh) return;
+    
+    const groupKeys = Object.keys(groupedData);
+    if (groupKeys.length <= itemsPerPage) return;
+    
+    const totalPages = Math.ceil(groupKeys.length / itemsPerPage);
+    const pageInterval = setInterval(() => {
+      setCurrentPage(prev => (prev + 1) % totalPages);
+    }, 30000); // Change page every 30 seconds
+
+    return () => clearInterval(pageInterval);
+  }, [autoRefresh, groupedData, itemsPerPage]);
 
   const calculateDuration = (startTime, endTime) => {
     if (!startTime) return 0;
@@ -143,7 +160,43 @@ const DisplayMode = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {Object.entries(groupedData).map(([equipmentKey, items]) => {
+            {/* Pagination Info */}
+            {Object.keys(groupedData).length > itemsPerPage && (
+              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 flex items-center justify-between`}>
+                <div className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Total Units: {Object.keys(groupedData).length} | 
+                  Showing page {currentPage + 1} of {Math.ceil(Object.keys(groupedData).length / itemsPerPage)}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                    disabled={currentPage === 0}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 hover:bg-gray-600 text-white disabled:opacity-50' 
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-900 disabled:opacity-50'
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(Math.ceil(Object.keys(groupedData).length / itemsPerPage) - 1, prev + 1))}
+                    disabled={currentPage >= Math.ceil(Object.keys(groupedData).length / itemsPerPage) - 1}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 hover:bg-gray-600 text-white disabled:opacity-50' 
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-900 disabled:opacity-50'
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {Object.entries(groupedData)
+              .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+              .map(([equipmentKey, items]) => {
               const breakdownCount = items.length;
               return (
                 <div key={equipmentKey} className={`${darkMode ? 'bg-gray-800' : 'bg-white shadow-md'} rounded-lg p-6`}>
@@ -224,6 +277,29 @@ const DisplayMode = () => {
                 </div>
               );
             })}
+
+            {/* Bottom Pagination */}
+            {Object.keys(groupedData).length > itemsPerPage && (
+              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4 flex items-center justify-center`}>
+                <div className="flex items-center space-x-2">
+                  {Array.from({ length: Math.ceil(Object.keys(groupedData).length / itemsPerPage) }, (_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`w-10 h-10 rounded-lg transition-colors ${
+                        currentPage === i
+                          ? 'bg-primary-600 text-white'
+                          : darkMode
+                          ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                          : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

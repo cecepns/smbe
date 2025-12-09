@@ -57,13 +57,17 @@ class AuthService {
     return this.user?.role || null;
   }
 
+  getUserPosition() {
+    return this.user?.position || null;
+  }
+
   hasPermission(permission) {
     if (!this.user) return false;
     
     const rolePermissions = {
-      admin: ['read', 'write', 'delete', 'manage'],
-      inputer: ['read', 'write'],
-      viewer: ['read'],
+      admin: ['read', 'write', 'delete', 'manage', 'petty_cash'],
+      inputer: ['read', 'write'], // No petty_cash access
+      viewer: ['read', 'petty_cash'],
       report_viewer: ['read'] // Only can view daily breakdown report
     };
     
@@ -71,12 +75,18 @@ class AuthService {
     return userPermissions.includes(permission);
   }
 
+  canAccessPettyCash() {
+    return this.hasPermission('petty_cash');
+  }
+
   canAccessAdminFeatures() {
     return this.user?.role === 'admin';
   }
 
   canInputData() {
-    return ['admin', 'inputer'].includes(this.user?.role);
+    // Only admin can input breakdown, spare parts data
+    // Inputer role is now view-only for reports
+    return ['admin'].includes(this.user?.role);
   }
 
   canViewData() {
@@ -84,11 +94,27 @@ class AuthService {
   }
 
   canViewReports() {
+    // Inputer can view reports but only for their location
     return ['admin', 'inputer', 'viewer', 'report_viewer'].includes(this.user?.role);
+  }
+
+  canEditReports() {
+    // Only admin can edit, inputer is view-only
+    return this.user?.role === 'admin';
   }
 
   canViewOnlyDailyReport() {
     return this.user?.role === 'report_viewer';
+  }
+
+  isInputerRole() {
+    return this.user?.role === 'inputer';
+  }
+
+  // Inputer can only view: reports, daily bd, unit downtime, PA for their site
+  getInputerAllowedPages() {
+    if (this.user?.role !== 'inputer') return [];
+    return ['reports', 'daily-breakdown', 'unit-downtime', 'physical-availability'];
   }
 
   getUserLocation() {

@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, BarChart3, FileText, TrendingUp, DollarSign, Package, Users, Clock, Monitor } from 'lucide-react';
 import Header from '../components/Header';
-import { reportsAPI, masterAPI } from '../utils/api';
+import { breakdownAPI, masterAPI } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
-import authService from '../services/authService';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 const ReportsPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('spare-parts');
+  const [activeTab, setActiveTab] = useState('equipment');
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
-    date_from: '',
-    date_to: '',
+    date_from: new Date(new Date().setDate(1)).toISOString().split('T')[0], // First day of month
+    date_to: new Date().toISOString().split('T')[0], // Today
     customer: '',
     location: '',
     equipment: ''
@@ -22,6 +21,9 @@ const ReportsPage = () => {
   const [costAnalysisData, setCostAnalysisData] = useState([]);
   const [mechanicUtilizationData, setMechanicUtilizationData] = useState([]);
   const [equipmentPerformanceData, setEquipmentPerformanceData] = useState([]);
+  const [dailyBreakdownSummary, setDailyBreakdownSummary] = useState([]);
+  const [unitDurationSummary, setUnitDurationSummary] = useState([]);
+  const [paSummary, setPaSummary] = useState([]);
   const [locations, setLocations] = useState([]);
   const [customers, setCustomers] = useState([]);
 
@@ -51,8 +53,155 @@ const ReportsPage = () => {
     try {
       setLoading(true);
       
+      const params = {
+        date_from: filters.date_from,
+        date_to: filters.date_to,
+        customer: filters.customer,
+        location: filters.location,
+        equipment: filters.equipment,
+        limit: 1000
+      };
+
       // Mock data - replace with actual API calls
       switch (activeTab) {
+        case 'equipment':
+          // Load equipment performance data
+          try {
+            const response = await breakdownAPI.getAll(params);
+            const breakdowns = response.data?.data || [];
+            
+            // Calculate performance per equipment
+            const perfMap = {};
+            breakdowns.forEach(bd => {
+              const key = bd.equipment_number;
+              if (!perfMap[key]) {
+                perfMap[key] = { equipment: key, breakdowns: 0, downtime: 0, customer: bd.customer };
+              }
+              perfMap[key].breakdowns++;
+              if (bd.jam_mulai) {
+                const start = new Date(bd.jam_mulai);
+                const end = bd.jam_selesai ? new Date(bd.jam_selesai) : new Date();
+                perfMap[key].downtime += (end - start) / (1000 * 60 * 60);
+              }
+            });
+            
+            const perfArray = Object.values(perfMap).map(item => ({
+              ...item,
+              downtime: item.downtime.toFixed(2),
+              availability: (100 - (item.downtime / 720 * 100)).toFixed(2) // 720 hours per month
+            }));
+            
+            setEquipmentPerformanceData(perfArray);
+          } catch (error) {
+            console.error('Error loading equipment performance:', error);
+          }
+          break;
+          
+        case 'daily-breakdown-summary':
+          // Load daily breakdown summary by customer
+          try {
+            const response = await breakdownAPI.getAll(params);
+            const breakdowns = response.data?.data || [];
+            
+            const customerMap = {};
+            breakdowns.forEach(bd => {
+              const customer = bd.customer || 'Unknown';
+              if (!customerMap[customer]) {
+                customerMap[customer] = { customer, count: 0, units: new Set() };
+              }
+              customerMap[customer].count++;
+              customerMap[customer].units.add(bd.equipment_number);
+            });
+            
+            const summaryArray = Object.values(customerMap).map(item => ({
+              customer: item.customer,
+              breakdown_count: item.count,
+              unit_count: item.units.size
+            }));
+            
+            setDailyBreakdownSummary(summaryArray);
+          } catch (error) {
+            console.error('Error loading daily breakdown summary:', error);
+          }
+          break;
+          
+        case 'unit-duration-summary':
+          // Load unit duration summary by customer
+          try {
+            const response = await breakdownAPI.getAll(params);
+            const breakdowns = response.data?.data || [];
+            
+            const customerMap = {};
+            breakdowns.forEach(bd => {
+              const customer = bd.customer || 'Unknown';
+              if (!customerMap[customer]) {
+                customerMap[customer] = { customer, total_duration: 0, count: 0 };
+              }
+              if (bd.jam_mulai) {
+                const start = new Date(bd.jam_mulai);
+                const end = bd.jam_selesai ? new Date(bd.jam_selesai) : new Date();
+                const hours = (end - start) / (1000 * 60 * 60);
+                customerMap[customer].total_duration += hours;
+                customerMap[customer].count++;
+              }
+            });
+            
+            const summaryArray = Object.values(customerMap).map(item => ({
+              customer: item.customer,
+              total_duration: item.total_duration.toFixed(2),
+              avg_duration: (item.total_duration / item.count).toFixed(2),
+              count: item.count
+            }));
+            
+            setUnitDurationSummary(summaryArray);
+          } catch (error) {
+            console.error('Error loading unit duration summary:', error);
+          }
+          break;
+          
+        case 'pa-summary':
+          // Load PA summary by customer
+          try {
+            const response = await breakdownAPI.getAll(params);
+            const breakdowns = response.data?.data || [];
+            
+            const customerMap = {};
+            breakdowns.forEach(bd => {
+              const customer = bd.customer || 'Unknown';
+              if (!customerMap[customer]) {
+                customerMap[customer] = { customer, total_downtime: 0, unit_count: new Set() };
+              }
+              customerMap[customer].unit_count.add(bd.equipment_number);
+              if (bd.jam_mulai) {
+                const start = new Date(bd.jam_mulai);
+                const end = bd.jam_selesai ? new Date(bd.jam_selesai) : new Date();
+                customerMap[customer].total_downtime += (end - start) / (1000 * 60 * 60);
+              }
+            });
+            
+            const startDate = new Date(filters.date_from);
+            const endDate = new Date(filters.date_to);
+            const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+            
+            const summaryArray = Object.values(customerMap).map(item => {
+              const totalActiveHours = item.unit_count.size * totalDays * 24;
+              const pa = totalActiveHours > 0 
+                ? ((totalActiveHours - item.total_downtime) / totalActiveHours * 100)
+                : 100;
+              return {
+                customer: item.customer,
+                unit_count: item.unit_count.size,
+                total_downtime: item.total_downtime.toFixed(2),
+                pa: Math.max(0, pa).toFixed(2)
+              };
+            });
+            
+            setPaSummary(summaryArray);
+          } catch (error) {
+            console.error('Error loading PA summary:', error);
+          }
+          break;
+          
         case 'spare-parts':
           setSparePartsData([
             { part: 'Oil Filter', used: 45, cost: 4500000 },
@@ -62,6 +211,7 @@ const ReportsPage = () => {
             { part: 'Engine Oil', used: 120, cost: 3600000 }
           ]);
           break;
+          
         case 'cost-analysis':
           setCostAnalysisData([
             { month: 'Jan', spare_parts: 15000000, labor: 25000000, transport: 8000000, total: 48000000 },
@@ -72,6 +222,7 @@ const ReportsPage = () => {
             { month: 'Jun', spare_parts: 14000000, labor: 24000000, transport: 7500000, total: 45500000 }
           ]);
           break;
+          
         case 'mechanic':
           setMechanicUtilizationData([
             { name: 'Budi Santoso', hours: 168, jobs: 12, efficiency: 85 },
@@ -81,15 +232,7 @@ const ReportsPage = () => {
             { name: 'Rudi Hartono', hours: 162, jobs: 11, efficiency: 81 }
           ]);
           break;
-        case 'equipment':
-          setEquipmentPerformanceData([
-            { equipment: 'EX-001', breakdowns: 3, downtime: 24, availability: 92 },
-            { equipment: 'EX-002', breakdowns: 2, downtime: 16, availability: 94 },
-            { equipment: 'EX-003', breakdowns: 5, downtime: 40, availability: 88 },
-            { equipment: 'EX-004', breakdowns: 1, downtime: 8, availability: 97 },
-            { equipment: 'EX-005', breakdowns: 4, downtime: 32, availability: 90 }
-          ]);
-          break;
+          
         default:
           break;
       }
@@ -122,13 +265,16 @@ const ReportsPage = () => {
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
   const tabs = [
+    { id: 'equipment', name: 'Performance Equipment', icon: TrendingUp },
+    { id: 'daily-breakdown-summary', name: 'Daily Breakdown (Summary)', icon: BarChart3 },
+    { id: 'unit-duration-summary', name: 'Durasi Unit (Summary)', icon: Clock },
+    { id: 'pa-summary', name: 'PA (Summary)', icon: TrendingUp },
+    { id: 'mechanic', name: 'Utilisasi Mekanik', icon: Users },
     { id: 'spare-parts', name: 'Penggunaan Spare Parts', icon: Package },
     { id: 'cost-analysis', name: 'Analisis Biaya', icon: DollarSign },
-    { id: 'mechanic', name: 'Utilisasi Mekanik', icon: Users },
-    { id: 'equipment', name: 'Performance Equipment', icon: TrendingUp },
-    { id: 'daily-breakdown', name: 'Daily Breakdown', icon: FileText, route: '/reports/daily-breakdown' },
-    { id: 'unit-downtime', name: 'Durasi Unit Rusak', icon: Clock, route: '/reports/unit-downtime' },
-    { id: 'pa', name: 'Physical Availability', icon: TrendingUp, route: '/reports/physical-availability' },
+    { id: 'daily-breakdown', name: 'Daily Breakdown (Detail)', icon: FileText, route: '/reports/daily-breakdown' },
+    { id: 'unit-downtime', name: 'Unit Downtime (Detail)', icon: Clock, route: '/reports/unit-downtime' },
+    { id: 'pa', name: 'Physical Availability (Detail)', icon: TrendingUp, route: '/reports/physical-availability' },
     { id: 'display', name: 'TV Display Mode', icon: Monitor, route: '/display/daily-breakdown' }
   ];
 
@@ -394,6 +540,7 @@ const ReportsPage = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Equipment</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Breakdowns</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Downtime (jam)</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Availability (%)</th>
@@ -403,9 +550,140 @@ const ReportsPage = () => {
                       {equipmentPerformanceData.map((item, idx) => (
                         <tr key={idx}>
                           <td className="px-6 py-4 text-sm text-gray-900">{item.equipment}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{item.customer || '-'}</td>
                           <td className="px-6 py-4 text-sm text-gray-500">{item.breakdowns}</td>
                           <td className="px-6 py-4 text-sm text-gray-500">{item.downtime}</td>
                           <td className="px-6 py-4 text-sm text-gray-500">{item.availability}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Daily Breakdown Summary by Customer */}
+            {activeTab === 'daily-breakdown-summary' && (
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                  Daily Breakdown Summary (Total per Customer)
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">Detail breakdown ada di sub modul Daily Breakdown (Detail)</p>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={dailyBreakdownSummary}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="customer" angle={-45} textAnchor="end" height={100} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="breakdown_count" fill="#EF4444" name="Jumlah Breakdown" />
+                    <Bar dataKey="unit_count" fill="#3B82F6" name="Jumlah Unit" />
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="mt-6 overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah Breakdown</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah Unit Terdampak</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {dailyBreakdownSummary.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.customer}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{item.breakdown_count}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{item.unit_count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Unit Duration Summary by Customer */}
+            {activeTab === 'unit-duration-summary' && (
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                  Durasi Unit Summary (Total per Customer)
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">Detail durasi ada di sub modul Unit Downtime (Detail)</p>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={unitDurationSummary}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="customer" angle={-45} textAnchor="end" height={100} />
+                    <YAxis />
+                    <Tooltip formatter={(value) => `${value} jam`} />
+                    <Bar dataKey="total_duration" fill="#F59E0B" name="Total Durasi (jam)" />
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="mt-6 overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Durasi (jam)</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rata-rata Durasi (jam)</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah Breakdown</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {unitDurationSummary.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.customer}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{item.total_duration}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{item.avg_duration}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{item.count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* PA Summary by Customer */}
+            {activeTab === 'pa-summary' && (
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                  Physical Availability Summary (Total per Customer)
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">Detail PA per unit ada di sub modul Physical Availability (Detail)</p>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={paSummary}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="customer" angle={-45} textAnchor="end" height={100} />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip formatter={(value, name) => name === 'pa' ? `${value}%` : value} />
+                    <Bar dataKey="pa" fill="#10B981" name="PA (%)" />
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="mt-6 overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah Unit</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Downtime (jam)</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">PA (%)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {paSummary.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.customer}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{item.unit_count}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">{item.total_downtime}</td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              parseFloat(item.pa) >= 95 ? 'bg-green-100 text-green-700' :
+                              parseFloat(item.pa) >= 85 ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {item.pa}%
+                            </span>
+                          </td>
                         </tr>
                       ))}
                     </tbody>

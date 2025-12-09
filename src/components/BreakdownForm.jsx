@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Save, FileDown, AlertCircle, Clock, Wrench, CheckCircle } from 'lucide-react';
 import { breakdownAPI, masterAPI } from '../utils/api';
 import authService from '../services/authService';
+import PropTypes from 'prop-types';
 
 const BreakdownForm = ({ breakdownId, onSave }) => {
   const [activeTab, setActiveTab] = useState(0);
@@ -122,33 +123,25 @@ const BreakdownForm = ({ breakdownId, onSave }) => {
   // Helper function to convert ISO datetime string to date format (yyyy-MM-dd)
   const formatDateForInput = (isoString) => {
     if (!isoString) return '';
-    try {
-      const date = new Date(isoString);
-      // Handle timezone offset by converting to local time
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    } catch (e) {
-      return '';
-    }
+    const date = new Date(isoString);
+    // Handle timezone offset by converting to local time
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   // Helper function to convert ISO datetime string to datetime-local format (yyyy-MM-ddThh:mm)
   const formatDateTimeForInput = (isoString) => {
     if (!isoString) return '';
-    try {
-      const date = new Date(isoString);
-      // Handle timezone offset by converting to local time
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${year}-${month}-${day}T${hours}:${minutes}`;
-    } catch (e) {
-      return '';
-    }
+    const date = new Date(isoString);
+    // Handle timezone offset by converting to local time
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   const loadBreakdownData = async () => {
@@ -342,18 +335,32 @@ const BreakdownForm = ({ breakdownId, onSave }) => {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          HM/KM Breakdown *
+          HM (Hour Meter) *
         </label>
         <input
           type="number"
           step="0.01"
           value={formData.hm_breakdown}
           onChange={(e) => handleInputChange('hm_breakdown', e.target.value)}
-          placeholder="Masukkan HM atau KM"
-          required
+          placeholder="Masukkan Hour Meter"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-        <p className="text-xs text-gray-500 mt-1">Masukkan Hour Meter (HM) atau Kilometer (KM) saat breakdown</p>
+        <p className="text-xs text-gray-500 mt-1">Hour Meter saat breakdown terjadi</p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          KM (Kilometer)
+        </label>
+        <input
+          type="number"
+          step="0.01"
+          value={formData.km}
+          onChange={(e) => handleInputChange('km', e.target.value)}
+          placeholder="Masukkan Kilometer"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+        />
+        <p className="text-xs text-gray-500 mt-1">Kilometer saat breakdown terjadi (untuk kendaraan)</p>
       </div>
 
       <div>
@@ -509,18 +516,6 @@ const BreakdownForm = ({ breakdownId, onSave }) => {
           rows={3}
           value={formData.note_plant}
           onChange={(e) => handleInputChange('note_plant', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          KM
-        </label>
-        <input
-          type="number"
-          value={formData.km}
-          onChange={(e) => handleInputChange('km', e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
       </div>
@@ -781,6 +776,11 @@ const BreakdownForm = ({ breakdownId, onSave }) => {
       </div>
     </div>
   );
+};
+
+BreakdownForm.propTypes = {
+  breakdownId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onSave: PropTypes.func
 };
 
 export default BreakdownForm;

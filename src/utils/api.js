@@ -108,6 +108,9 @@ export const dashboardAPI = {
   getPerformance: () => api.get('/dashboard/performance'),
   getBreakdownTrends: () => api.get('/dashboard/breakdown-trends'),
   getMechanicUtilization: () => api.get('/dashboard/mechanic-utilization'),
+  getEquipmentStatus: () => api.get('/dashboard/equipment-status'),
+  getCostAnalysis: () => api.get('/dashboard/cost-analysis'),
+  getRecentActivities: (params) => api.get('/dashboard/recent-activities', { params }),
 };
 
 // Reports endpoints

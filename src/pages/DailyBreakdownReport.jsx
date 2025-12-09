@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FileText, Download, RefreshCw, Calendar } from 'lucide-react';
+import { FileText, Download, RefreshCw } from 'lucide-react';
 import Header from '../components/Header';
 import { breakdownAPI } from '../utils/api';
 import authService from '../services/authService';
 
 const DailyBreakdownReport = () => {
-  const [breakdowns, setBreakdowns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [groupedData, setGroupedData] = useState({});
@@ -27,7 +26,6 @@ const DailyBreakdownReport = () => {
 
       const response = await breakdownAPI.getAll(params);
       const data = response.data?.data || response.data || [];
-      setBreakdowns(data);
       
       // Group by equipment type/code
       const grouped = {};
