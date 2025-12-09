@@ -189,6 +189,7 @@ CREATE TABLE IF NOT EXISTS breakdown_data (
     jam_mulai TIMESTAMP NULL,
     jam_selesai TIMESTAMP NULL,
     kategori_perawatan ENUM('Service', 'PMS', 'Storing') NOT NULL, -- Updated to match backend
+    perlu_petty_cash ENUM('yes', 'no') NULL DEFAULT NULL COMMENT 'Indicates if the breakdown requires petty cash allocation',
     
     -- Tab 2: Informasi Plant
     pelapor_bd VARCHAR(100),
@@ -235,7 +236,8 @@ CREATE TABLE IF NOT EXISTS breakdown_data (
     INDEX idx_equipment (equipment_id),
     INDEX idx_status (status),
     INDEX idx_kategori (kategori_perawatan),
-    INDEX idx_priority (priority)
+    INDEX idx_priority (priority),
+    INDEX idx_perlu_petty_cash (perlu_petty_cash)
 );
 
 -- Mechanic Activities

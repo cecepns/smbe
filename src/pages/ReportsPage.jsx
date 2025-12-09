@@ -375,7 +375,7 @@ const ReportsPage = () => {
         {/* Tabs */}
         <div className="mb-3 bg-white rounded-lg shadow-sm">
           <div className="border-b border-gray-200">
-            <nav className="flex -mb-px">
+            <nav className="flex flex-wrap gap-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 // If tab has route, navigate instead of changing tab
