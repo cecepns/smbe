@@ -229,9 +229,9 @@ const BreakdownPage = ({ isNew }) => {
         subtitle="Kelola data kerusakan dan perbaikan equipment"
       />
       
-      <div className="p-6">
+      <div className="p-4">
         {/* Actions Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 space-y-2 sm:space-y-0">
           <div className="flex items-center space-x-4">
             {/* Search */}
             <div className="relative">
@@ -304,33 +304,42 @@ const BreakdownPage = ({ isNew }) => {
         </div>
 
         {/* Breakdown Table */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Equipment
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tanggal
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Lokasi
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Customer
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Kategori
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tgl
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Jam
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pelapor
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Problem
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Lokasi
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Kategori
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pelapor
+                  </th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -338,42 +347,55 @@ const BreakdownPage = ({ isNew }) => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {breakdowns.map((breakdown) => (
                   <tr key={breakdown.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-xs font-medium text-gray-900">
                         {breakdown.equipment_number}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-xs text-gray-900">
+                        {breakdown.equipment_type || '-'}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-xs text-gray-900">
+                        {breakdown.customer || '-'}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-xs text-gray-900">
                         {new Date(breakdown.tanggal).toLocaleDateString('id-ID')}
                       </div>
-                      <div className="text-sm text-gray-500">
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-xs text-gray-500">
                         {breakdown.jam_mulai 
                           ? `${new Date(breakdown.jam_mulai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
-                          : '-'} - {breakdown.jam_selesai 
-                          ? new Date(breakdown.jam_selesai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-                          : 'Ongoing'}
+                          : '-'}
+                        {breakdown.jam_selesai 
+                          ? ` - ${new Date(breakdown.jam_selesai).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
+                          : breakdown.jam_mulai ? ' (Ongoing)' : ''}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{breakdown.lokasi}</div>
+                    <td className="px-3 py-2">
+                      <div className="text-xs text-gray-900 max-w-xs truncate">
+                        {breakdown.problem || '-'}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-xs text-gray-900">{breakdown.lokasi || '-'}</div>
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
                       {getCategoryBadge(breakdown.kategori_perawatan)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       {getStatusBadge(breakdown.status)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{breakdown.pelapor_bd}</div>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-xs text-gray-900">{breakdown.pelapor_bd || '-'}</div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 max-w-xs truncate">
-                        {breakdown.problem}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
+                    <td className="px-3 py-2 whitespace-nowrap text-right text-xs font-medium">
+                      <div className="flex items-center justify-end space-x-1">
                         {canViewData && (
                           <button
                             onClick={() => handleViewBreakdown(breakdown.id)}
@@ -424,7 +446,7 @@ const BreakdownPage = ({ isNew }) => {
 
         {/* Pagination */}
         {breakdowns.length > 0 && (
-          <div className="flex items-center justify-between mt-6">
+          <div className="flex items-center justify-between mt-3">
             <div className="text-sm text-gray-700">
               Menampilkan {(currentPage - 1) * limit + 1}-{Math.min(currentPage * limit, total)} dari {total} data
             </div>

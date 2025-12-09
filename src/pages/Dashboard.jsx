@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import Header from '../components/Header';
+import authService from '../services/authService';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -93,27 +94,35 @@ const Dashboard = () => {
     }).format(amount);
   };
 
-  const StatCard = ({ title, value, change, icon: Icon, color, subtitle }) => ( // eslint-disable-line react/prop-types
-    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+  const StatCard = ({ title, value, change, icon: Icon, color, subtitle, hide }) => { // eslint-disable-line react/prop-types
+    // Hide Total Mekanik and Total Biaya for viewer role
+    const userRole = authService.getUserRole();
+    if (hide && userRole === 'viewer') {
+      return null;
+    }
+    
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-3 border border-gray-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-gray-600">{title}</p>
+            <p className="text-xl font-bold text-gray-900">{value}</p>
+            {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+          </div>
+          <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${color}`}>
+            <Icon className="h-5 w-5 text-white" />
+          </div>
         </div>
-        <div className={`h-12 w-12 rounded-lg flex items-center justify-center ${color}`}>
-          <Icon className="h-6 w-6 text-white" />
-        </div>
+        {change && (
+          <div className="mt-2 flex items-center">
+            <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
+            <span className="text-xs font-medium text-green-600">{change}</span>
+            <span className="text-xs text-gray-500 ml-1">vs bulan lalu</span>
+          </div>
+        )}
       </div>
-      {change && (
-        <div className="mt-4 flex items-center">
-          <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-          <span className="text-sm font-medium text-green-600">{change}</span>
-          <span className="text-sm text-gray-500 ml-1">vs bulan lalu</span>
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
 
   if (loading) {
@@ -131,9 +140,9 @@ const Dashboard = () => {
         subtitle="Monitoring performance equipment dan maintenance overview"
       />
       
-      <div className="p-6 space-y-6">
+      <div className="p-4 space-y-3">
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <StatCard
             title="Total Equipment"
             value={stats.totalEquipment}
@@ -164,6 +173,7 @@ const Dashboard = () => {
             icon={Users}
             color="bg-purple-500"
             subtitle="12 Active"
+            hide={true}
           />
           
           <StatCard
@@ -172,6 +182,7 @@ const Dashboard = () => {
             icon={DollarSign}
             color="bg-yellow-500"
             change="-3.2%"
+            hide={true}
           />
           
           <StatCard
@@ -184,13 +195,13 @@ const Dashboard = () => {
         </div>
 
         {/* Charts Row 1 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {/* Breakdown Trends */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg shadow-sm p-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">
               Trend Breakdown & Perbaikan
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <BarChart data={breakdownTrends}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
@@ -203,11 +214,11 @@ const Dashboard = () => {
           </div>
 
           {/* Equipment Status */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg shadow-sm p-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">
               Status Equipment
             </h3>
-            <div className="flex items-center justify-center h-[300px]">
+            <div className="flex items-center justify-center h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -231,13 +242,13 @@ const Dashboard = () => {
         </div>
 
         {/* Charts Row 2 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {/* Mechanic Utilization */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg shadow-sm p-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">
               Utilisasi Mekanik (%)
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <BarChart data={mechanicUtilization} layout="horizontal">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" domain={[0, 100]} />
@@ -249,11 +260,11 @@ const Dashboard = () => {
           </div>
 
           {/* Cost Analysis */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg shadow-sm p-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">
               Analisis Biaya
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <BarChart data={costAnalysis}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="category" />
@@ -266,65 +277,65 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <h3 className="text-base font-semibold text-gray-900 mb-2">
             Quick Actions
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button className="flex items-center space-x-3 p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-              <AlertTriangle className="h-6 w-6 text-red-600" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+            <button className="flex items-center space-x-2 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
               <div className="text-left">
-                <div className="font-medium text-red-900">Report Breakdown</div>
-                <div className="text-sm text-red-600">Laporkan kerusakan baru</div>
+                <div className="text-sm font-medium text-red-900">Report Breakdown</div>
+                <div className="text-xs text-red-600">Laporkan kerusakan baru</div>
               </div>
             </button>
             
-            <button className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+            <button className="flex items-center space-x-2 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+              <CheckCircle className="h-5 w-5 text-green-600" />
               <div className="text-left">
-                <div className="font-medium text-green-900">Mark as Ready</div>
-                <div className="text-sm text-green-600">Tandai equipment siap</div>
+                <div className="text-sm font-medium text-green-900">Mark as Ready</div>
+                <div className="text-xs text-green-600">Tandai equipment siap</div>
               </div>
             </button>
             
-            <button className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-              <Wrench className="h-6 w-6 text-blue-600" />
+            <button className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+              <Wrench className="h-5 w-5 text-blue-600" />
               <div className="text-left">
-                <div className="font-medium text-blue-900">Assign Mechanic</div>
-                <div className="text-sm text-blue-600">Tugaskan mekanik</div>
+                <div className="text-sm font-medium text-blue-900">Assign Mechanic</div>
+                <div className="text-xs text-blue-600">Tugaskan mekanik</div>
               </div>
             </button>
             
-            <button className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
-              <BarChart3 className="h-6 w-6 text-purple-600" />
+            <button className="flex items-center space-x-2 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+              <BarChart3 className="h-5 w-5 text-purple-600" />
               <div className="text-left">
-                <div className="font-medium text-purple-900">View Reports</div>
-                <div className="text-sm text-purple-600">Lihat laporan detail</div>
+                <div className="text-sm font-medium text-purple-900">View Reports</div>
+                <div className="text-xs text-purple-600">Lihat laporan detail</div>
               </div>
             </button>
           </div>
         </div>
 
         {/* Recent Activities */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <h3 className="text-base font-semibold text-gray-900 mb-2">
             Aktivitas Terbaru
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {[
               { type: 'breakdown', message: 'Equipment EX-001 mengalami breakdown', time: '2 menit yang lalu', status: 'red' },
               { type: 'repair', message: 'Perbaikan EX-005 telah selesai', time: '15 menit yang lalu', status: 'green' },
               { type: 'maintenance', message: 'Scheduled maintenance EX-003 dimulai', time: '1 jam yang lalu', status: 'yellow' },
               { type: 'part', message: 'Spare part untuk EX-007 telah tersedia', time: '2 jam yang lalu', status: 'blue' },
             ].map((activity, index) => (
-              <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                <div className={`h-3 w-3 rounded-full ${
+              <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
+                <div className={`h-2 w-2 rounded-full ${
                   activity.status === 'red' ? 'bg-red-500' :
                   activity.status === 'green' ? 'bg-green-500' :
                   activity.status === 'yellow' ? 'bg-yellow-500' : 'bg-blue-500'
                 }`}></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{activity.message}</p>
+                  <p className="text-xs font-medium text-gray-900">{activity.message}</p>
                   <p className="text-xs text-gray-500">{activity.time}</p>
                 </div>
               </div>

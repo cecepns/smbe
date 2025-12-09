@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, Search, X, Save, CreditCard, Download } from 'lucide-react';
 import Header from '../components/Header';
 import { pettyCashAPI, breakdownAPI, masterAPI } from '../utils/api';
+import authService from '../services/authService';
 
 const PettyCashPage = () => {
   const [transactions, setTransactions] = useState([]);
@@ -203,6 +204,16 @@ const PettyCashPage = () => {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      // Export functionality - implement actual API call here
+      alert('Export feature akan segera tersedia');
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Gagal export data');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -218,18 +229,18 @@ const PettyCashPage = () => {
         subtitle="Kelola biaya perjalanan dan operasional mekanik"
       />
       
-      <div className="p-6">
+      <div className="p-4">
         {/* Filters */}
-        <div className="mb-6 bg-white rounded-xl shadow-sm p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="mb-3 bg-white rounded-lg shadow-sm p-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Breakdown
               </label>
               <select
                 value={filters.breakdown_id}
                 onChange={(e) => handleFilterChange('breakdown_id', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">Semua Breakdown</option>
                 {Array.isArray(breakdowns) && breakdowns.map(bd => (
@@ -238,13 +249,13 @@ const PettyCashPage = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Tipe Biaya
               </label>
               <select
                 value={filters.expense_type}
                 onChange={(e) => handleFilterChange('expense_type', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="">Semua Tipe</option>
                 <option value="tol">Tol</option>
@@ -256,67 +267,70 @@ const PettyCashPage = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Dari Tanggal
               </label>
               <input
                 type="date"
                 value={filters.date_from}
                 onChange={(e) => handleFilterChange('date_from', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Sampai Tanggal
               </label>
               <input
                 type="date"
                 value={filters.date_to}
                 onChange={(e) => handleFilterChange('date_to', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
           </div>
         </div>
 
         {/* Actions Bar */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
               placeholder="Cari transaksi..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="pl-8 pr-3 py-1.5 text-sm w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            {authService.getUserRole() === 'inputer' && (
+              <button
+                onClick={() => {
+                  resetForm();
+                  setShowModal(true);
+                }}
+                className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Tambah</span>
+              </button>
+            )}
             <button
-              onClick={() => {
-                resetForm();
-                setShowModal(true);
-              }}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              onClick={() => handleExport()}
+              className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
-              <Plus className="h-5 w-5" />
-              <span>Tambah Biaya</span>
-            </button>
-            <button
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <Download className="h-5 w-5" />
+              <Download className="h-4 w-4" />
               <span>Export</span>
             </button>
           </div>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <div className="text-sm text-gray-600">Total Biaya</div>
-            <div className="text-2xl font-bold text-gray-900">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-3">
+          <div className="bg-white rounded-lg shadow-sm p-3">
+            <div className="text-xs text-gray-600">Total Biaya</div>
+            <div className="text-lg font-bold text-gray-900">
               {formatCurrency(transactions.reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0))}
             </div>
           </div>
@@ -325,9 +339,9 @@ const PettyCashPage = () => {
               .filter(t => t.expense_type === type)
               .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
             return (
-              <div key={type} className="bg-white rounded-lg shadow-sm p-4">
-                <div className="text-sm text-gray-600">{getExpenseTypeLabel(type)}</div>
-                <div className="text-xl font-bold text-gray-900">
+              <div key={type} className="bg-white rounded-lg shadow-sm p-3">
+                <div className="text-xs text-gray-600">{getExpenseTypeLabel(type)}</div>
+                <div className="text-base font-bold text-gray-900">
                   {formatCurrency(total)}
                 </div>
               </div>
@@ -336,11 +350,11 @@ const PettyCashPage = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tanggal
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -506,46 +520,114 @@ const PettyCashPage = () => {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Breakdown
+            <form onSubmit={handleSubmit} className="p-4 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                {/* Breakdown - connects with maintenance category */}
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Breakdown (Kategori Perawatan) *
                   </label>
                   <select
+                    required
                     value={formData.breakdown_id}
-                    onChange={(e) => setFormData({ ...formData, breakdown_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    onChange={(e) => {
+                      const selectedBD = breakdowns.find(bd => bd.id === parseInt(e.target.value));
+                      setFormData({ 
+                        ...formData, 
+                        breakdown_id: e.target.value,
+                        // Auto-fill locations from breakdown if available
+                        location_from_id: selectedBD?.lokasi ? locations.find(l => l.name === selectedBD.lokasi)?.id || formData.location_from_id : formData.location_from_id
+                      });
+                    }}
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="">Pilih Breakdown</option>
-                    {Array.isArray(breakdowns) && breakdowns.map(bd => (
-                      <option key={bd.id} value={bd.id}>{bd.equipment_number}</option>
+                    {Array.isArray(breakdowns) && breakdowns.filter(bd => 
+                      ['service', 'pms', 'storing'].includes(bd.kategori_perawatan?.toLowerCase())
+                    ).map(bd => (
+                      <option key={bd.id} value={bd.id}>
+                        {bd.equipment_number} - {bd.kategori_perawatan}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Hanya breakdown dengan kategori Service/PMS/Storing</p>
+                </div>
+                
+                {/* Dari Lokasi */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Dari Lokasi *
+                  </label>
+                  <select
+                    required
+                    value={formData.location_from_id}
+                    onChange={(e) => setFormData({ ...formData, location_from_id: e.target.value })}
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="">Pilih Lokasi</option>
+                    {locations.map(loc => (
+                      <option key={loc.id} value={loc.id}>{loc.name}</option>
                     ))}
                   </select>
                 </div>
                 
+                {/* Ke Lokasi */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tanggal Biaya *
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Ke Lokasi *
                   </label>
-                  <input
-                    type="date"
+                  <select
                     required
-                    value={formData.expense_date}
-                    onChange={(e) => setFormData({ ...formData, expense_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                    value={formData.location_to_id}
+                    onChange={(e) => setFormData({ ...formData, location_to_id: e.target.value })}
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="">Pilih Lokasi</option>
+                    {locations.map(loc => (
+                      <option key={loc.id} value={loc.id}>{loc.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
+                {/* Jarak - with table selection option */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Jarak (KM) *
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="number"
+                      required
+                      step="0.1"
+                      value={formData.distance_km}
+                      onChange={(e) => setFormData({ ...formData, distance_km: e.target.value })}
+                      placeholder="Input jarak"
+                      className="flex-1 px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // TODO: Open distance table/modal
+                        alert('Fitur tabel jarak akan segera tersedia');
+                      }}
+                      className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                      title="Pilih dari tabel jarak"
+                    >
+                      Tabel
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Tipe Biaya */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Tipe Biaya *
                   </label>
                   <select
                     required
                     value={formData.expense_type}
                     onChange={(e) => setFormData({ ...formData, expense_type: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="tol">Tol</option>
                     <option value="bensin">Bensin</option>
@@ -556,8 +638,23 @@ const PettyCashPage = () => {
                   </select>
                 </div>
                 
+                {/* Tanggal Biaya */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Tanggal Biaya *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.expense_date}
+                    onChange={(e) => setFormData({ ...formData, expense_date: e.target.value })}
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                
+                {/* Jumlah */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Jumlah (Rp) *
                   </label>
                   <input
@@ -565,74 +662,32 @@ const PettyCashPage = () => {
                     required
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 
+                {/* No. Receipt */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Dari Lokasi
-                  </label>
-                  <select
-                    value={formData.location_from_id}
-                    onChange={(e) => setFormData({ ...formData, location_from_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  >
-                    <option value="">Pilih Lokasi</option>
-                    {locations.map(loc => (
-                      <option key={loc.id} value={loc.id}>{loc.name}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ke Lokasi
-                  </label>
-                  <select
-                    value={formData.location_to_id}
-                    onChange={(e) => setFormData({ ...formData, location_to_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  >
-                    <option value="">Pilih Lokasi</option>
-                    {locations.map(loc => (
-                      <option key={loc.id} value={loc.id}>{loc.name}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Jarak (KM)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.distance_km}
-                    onChange={(e) => setFormData({ ...formData, distance_km: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     No. Receipt
                   </label>
                   <input
                     type="text"
                     value={formData.receipt_number}
                     onChange={(e) => setFormData({ ...formData, receipt_number: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 
+                {/* Mekanik */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Mekanik
                   </label>
                   <select
                     value={formData.mechanic_id}
                     onChange={(e) => setFormData({ ...formData, mechanic_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="">Pilih Mekanik</option>
                     {mechanics.map(m => (
@@ -641,44 +696,47 @@ const PettyCashPage = () => {
                   </select>
                 </div>
                 
+                {/* Kendaraan */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Kendaraan
                   </label>
                   <input
                     type="text"
                     value={formData.vehicle_used}
                     onChange={(e) => setFormData({ ...formData, vehicle_used: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 
+                {/* Keterangan */}
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Keterangan
                   </label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows="3"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    rows="2"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 
+                {/* Catatan */}
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
                     Catatan
                   </label>
                   <textarea
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     rows="2"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
               </div>
               
-              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => {

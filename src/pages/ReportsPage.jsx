@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Download, BarChart3, FileText, TrendingUp, DollarSign, Package, Users, Clock, Monitor } from 'lucide-react';
 import Header from '../components/Header';
-import { reportsAPI } from '../utils/api';
+import { reportsAPI, masterAPI } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
+import authService from '../services/authService';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
 const ReportsPage = () => {
@@ -12,18 +13,39 @@ const ReportsPage = () => {
   const [filters, setFilters] = useState({
     date_from: '',
     date_to: '',
-    equipment: '',
-    location: ''
+    customer: '',
+    location: '',
+    equipment: ''
   });
 
   const [sparePartsData, setSparePartsData] = useState([]);
   const [costAnalysisData, setCostAnalysisData] = useState([]);
   const [mechanicUtilizationData, setMechanicUtilizationData] = useState([]);
   const [equipmentPerformanceData, setEquipmentPerformanceData] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [customers, setCustomers] = useState([]);
 
   useEffect(() => {
+    loadMasterData();
     loadReportData();
   }, [activeTab, filters]);
+
+  const loadMasterData = async () => {
+    try {
+      const [locationsRes, equipmentRes] = await Promise.all([
+        masterAPI.getLocations(),
+        masterAPI.getEquipment()
+      ]);
+      setLocations(locationsRes.data || []);
+      // Extract unique customers from equipment
+      const uniqueCustomers = [...new Set((equipmentRes.data || [])
+        .map(eq => eq.customer)
+        .filter(c => c))];
+      setCustomers(uniqueCustomers);
+    } catch (error) {
+      console.error('Error loading master data:', error);
+    }
+  };
 
   const loadReportData = async () => {
     try {
@@ -117,34 +139,64 @@ const ReportsPage = () => {
         subtitle="Laporan dan analisis data breakdown equipment"
       />
       
-      <div className="p-6">
+      <div className="p-4">
         {/* Filters */}
-        <div className="mb-6 bg-white rounded-xl shadow-sm p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="mb-3 bg-white rounded-lg shadow-sm p-3">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Dari Tanggal
               </label>
               <input
                 type="date"
                 value={filters.date_from}
                 onChange={(e) => setFilters({ ...filters, date_from: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Sampai Tanggal
               </label>
               <input
                 type="date"
                 value={filters.date_to}
                 onChange={(e) => setFilters({ ...filters, date_to: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Customer
+              </label>
+              <select
+                value={filters.customer || ''}
+                onChange={(e) => setFilters({ ...filters, customer: e.target.value })}
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value="">Semua Customer</option>
+                {customers.map(customer => (
+                  <option key={customer} value={customer}>{customer}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Lokasi
+              </label>
+              <select
+                value={filters.location || ''}
+                onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value="">Semua Lokasi</option>
+                {locations.map(loc => (
+                  <option key={loc.id} value={loc.name}>{loc.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Equipment
               </label>
               <input
@@ -152,42 +204,30 @@ const ReportsPage = () => {
                 value={filters.equipment}
                 onChange={(e) => setFilters({ ...filters, equipment: e.target.value })}
                 placeholder="Semua Equipment"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Lokasi
-              </label>
-              <input
-                type="text"
-                value={filters.location}
-                onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-                placeholder="Semua Lokasi"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
           </div>
-          <div className="mt-4 flex items-center space-x-3">
+          <div className="mt-3 flex items-center space-x-2">
             <button
               onClick={() => handleExport('excel')}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
-              <Download className="h-5 w-5" />
+              <Download className="h-4 w-4" />
               <span>Export Excel</span>
             </button>
             <button
               onClick={() => handleExport('pdf')}
-              className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
-              <FileText className="h-5 w-5" />
+              <FileText className="h-4 w-4" />
               <span>Export PDF</span>
             </button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 bg-white rounded-xl shadow-sm">
+        <div className="mb-3 bg-white rounded-lg shadow-sm">
           <div className="border-b border-gray-200">
             <nav className="flex -mb-px">
               {tabs.map((tab) => {
@@ -198,9 +238,9 @@ const ReportsPage = () => {
                     <button
                       key={tab.id}
                       onClick={() => navigate(tab.route)}
-                      className="flex items-center space-x-2 px-6 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors"
+                      className="flex items-center space-x-1 px-4 py-2 text-xs font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors"
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className="h-4 w-4" />
                       <span>{tab.name}</span>
                     </button>
                   );
@@ -209,13 +249,13 @@ const ReportsPage = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                    className={`flex items-center space-x-1 px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
                       activeTab === tab.id
                         ? 'border-primary-600 text-primary-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-4 w-4" />
                     <span>{tab.name}</span>
                   </button>
                 );
@@ -230,11 +270,11 @@ const ReportsPage = () => {
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-3">
             {/* Spare Parts Usage Report */}
             {activeTab === 'spare-parts' && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              <div className="bg-white rounded-lg shadow-sm p-4">
+                <h3 className="text-base font-semibold text-gray-900 mb-3">
                   Laporan Penggunaan Spare Parts
                 </h3>
                 <ResponsiveContainer width="100%" height={400}>

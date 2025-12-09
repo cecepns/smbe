@@ -16,6 +16,7 @@ const BreakdownForm = ({ breakdownId, onSave }) => {
     jam_mulai: '',
     jam_selesai: '',
     kategori_perawatan: '',
+    perlu_petty_cash: '',
     
     // Tab 2 - Informasi Plant
     pelapor_bd: '',
@@ -245,6 +246,8 @@ const BreakdownForm = ({ breakdownId, onSave }) => {
     }
   };
 
+  console.log(formData);
+
   const renderTab1 = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
@@ -383,7 +386,13 @@ const BreakdownForm = ({ breakdownId, onSave }) => {
         </label>
         <select
           value={formData.kategori_perawatan}
-          onChange={(e) => handleInputChange('kategori_perawatan', e.target.value)}
+          onChange={(e) => {
+            handleInputChange('kategori_perawatan', e.target.value);
+            // Reset petty cash selection when category changes
+            if (!['service', 'pms', 'storing'].includes(e.target.value.toLowerCase())) {
+              handleInputChange('perlu_petty_cash', '');
+            }
+          }}
           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
             errors.kategori_perawatan ? 'border-red-500' : 'border-gray-300'
           }`}
@@ -395,6 +404,34 @@ const BreakdownForm = ({ breakdownId, onSave }) => {
         </select>
         {errors.kategori_perawatan && <p className="text-red-500 text-xs mt-1">{errors.kategori_perawatan}</p>}
       </div>
+
+      {/* Petty Cash Question - Only for Service/PMS/Storing */}
+      {['service', 'pms', 'storing'].includes(formData.kategori_perawatan?.toLowerCase()) && (
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Perlu uang Petty Cash? *
+          </label>
+          <select
+            value={formData.perlu_petty_cash}
+            onChange={(e) => handleInputChange('perlu_petty_cash', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="">Pilih</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+          {formData.perlu_petty_cash === 'yes' && (
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm text-blue-800 mb-2">
+                Setelah menyimpan breakdown, silakan input Petty Cash melalui menu <strong>Petty Cash</strong>.
+              </p>
+              <p className="text-xs text-blue-600">
+                Breakdown ID: {breakdownId ? breakdownId : '(akan tersedia setelah disimpan)'}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 

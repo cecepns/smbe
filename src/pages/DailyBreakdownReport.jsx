@@ -96,44 +96,57 @@ const DailyBreakdownReport = () => {
         subtitle="Laporan breakdown harian per equipment"
       />
       
-      <div className="p-6">
+      <div className="p-4">
         {/* Filters */}
-        <div className="mb-6 bg-white rounded-xl shadow-sm p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-gray-500" />
-                <label className="text-sm font-medium text-gray-700">Tanggal:</label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                />
-              </div>
+        <div className="mb-3 bg-white rounded-lg shadow-sm p-3">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Tanggal</label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Customer</label>
+              <select className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg">
+                <option>Semua Customer</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Lokasi</label>
+              <select className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg">
+                <option>Semua Lokasi</option>
+              </select>
+            </div>
+            <div className="flex items-end">
               <button
                 onClick={loadData}
-                className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
               >
-                <RefreshCw className="h-5 w-5" />
+                <RefreshCw className="h-4 w-4" />
                 <span>Refresh</span>
               </button>
             </div>
-            <button
-              onClick={handleExport}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <Download className="h-5 w-5" />
-              <span>Export</span>
-            </button>
+            <div className="flex items-end">
+              <button
+                onClick={handleExport}
+                className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <Download className="h-4 w-4" />
+                <span>Export</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Report Content */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">DAILY BREAKDOWN REPORT</h2>
-            <p className="text-gray-600 mt-2">Tanggal: {formatDate(selectedDate)}</p>
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <div className="text-center mb-3">
+            <h2 className="text-xl font-bold text-gray-900">DAILY BREAKDOWN REPORT</h2>
+            <p className="text-sm text-gray-600 mt-1">Tanggal: {formatDate(selectedDate)}</p>
           </div>
 
           <div className="overflow-x-auto">
@@ -145,49 +158,49 @@ const DailyBreakdownReport = () => {
             ) : (
               Object.entries(groupedData).map(([equipmentKey, items]) => (
                 <div key={equipmentKey} className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 bg-blue-50 p-3 rounded">
+                  <h3 className="text-base font-semibold text-gray-900 mb-2 bg-blue-50 p-2 rounded">
                     Unit: {equipmentKey}
                   </h3>
-                  <table className="min-w-full divide-y divide-gray-200 mb-4">
+                  <table className="min-w-full divide-y divide-gray-200 mb-3">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code Number</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HM BD</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type BD</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">RFU</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notif Num</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">MO</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Durasi (Jam)</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
+                        <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Code Number</th>
+                        <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">HM BD</th>
+                        <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Type BD</th>
+                        <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Start</th>
+                        <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">RFU</th>
+                        <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Notif Num</th>
+                        <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">MO</th>
+                        <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Durasi (Jam)</th>
+                        <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {items.map((item) => (
                         <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm text-gray-900">{item.equipment_number}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{item.hm_breakdown || '-'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{item.tipe_bd || '-'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{formatTime(item.jam_mulai)}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
+                          <td className="px-2 py-1.5 text-xs text-gray-900">{item.equipment_number}</td>
+                          <td className="px-2 py-1.5 text-xs text-gray-900">{item.hm_breakdown || '-'}</td>
+                          <td className="px-2 py-1.5 text-xs text-gray-900">{item.tipe_bd || '-'}</td>
+                          <td className="px-2 py-1.5 text-xs text-gray-900">{formatTime(item.jam_mulai)}</td>
+                          <td className="px-2 py-1.5 text-xs text-gray-900">
                             {item.rfu === 'ready' ? '✓' : item.rfu || '-'}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{item.work_order || '-'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{item.wr_pr || '-'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
+                          <td className="px-2 py-1.5 text-xs text-gray-900">{item.work_order || '-'}</td>
+                          <td className="px-2 py-1.5 text-xs text-gray-900">{item.wr_pr || '-'}</td>
+                          <td className="px-2 py-1.5 text-xs text-gray-900">
                             {calculateDuration(item.jam_mulai, item.jam_selesai)}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{item.problem || item.note_plant || '-'}</td>
+                          <td className="px-2 py-1.5 text-xs text-gray-900">{item.problem || item.note_plant || '-'}</td>
                         </tr>
                       ))}
                       <tr className="bg-gray-100 font-semibold">
-                        <td colSpan="7" className="px-4 py-3 text-sm text-gray-900">TOTAL</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                        <td colSpan="7" className="px-2 py-1.5 text-xs text-gray-900">TOTAL</td>
+                        <td className="px-2 py-1.5 text-xs text-gray-900">
                           {items.reduce((sum, item) => 
                             sum + parseFloat(calculateDuration(item.jam_mulai, item.jam_selesai)), 0
                           ).toFixed(2)} Jam
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900"></td>
+                        <td className="px-2 py-1.5 text-xs text-gray-900"></td>
                       </tr>
                     </tbody>
                   </table>

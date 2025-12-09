@@ -228,7 +228,7 @@ app.get('/api/breakdown', authenticateToken, async (req, res) => {
 
         // Get paginated data
         const dataQuery = `
-            SELECT bd.*, em.name as equipment_name, em.customer, lm.name as location_name
+            SELECT bd.*, em.name as equipment_name, em.customer, em.type as equipment_type, lm.name as location_name
             FROM breakdown_data bd
             LEFT JOIN equipment_master em ON bd.equipment_id = em.id
             LEFT JOIN location_master lm ON bd.lokasi = lm.name

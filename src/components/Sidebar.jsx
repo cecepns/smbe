@@ -76,7 +76,7 @@ const Sidebar = () => {
       name: 'TV Display Mode',
       href: '/display/daily-breakdown',
       icon: Monitor,
-      roles: ['admin', 'inputer', 'viewer', 'report_viewer']
+      roles: ['admin', 'report_viewer'] // Only admin and report_viewer can access TV display
     }
   ];
 
