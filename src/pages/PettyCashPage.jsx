@@ -604,7 +604,7 @@ const PettyCashPage = () => {
                       placeholder="Input jarak"
                       className="flex-1 px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
-                    <button
+                    {/* <button
                       type="button"
                       onClick={() => {
                         // TODO: Open distance table/modal
@@ -614,7 +614,7 @@ const PettyCashPage = () => {
                       title="Pilih dari tabel jarak"
                     >
                       Tabel
-                    </button>
+                    </button> */}
                   </div>
                 </div>
                 
