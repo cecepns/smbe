@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   Home,
   AlertTriangle,
@@ -17,9 +17,9 @@ import {
   TrendingUp,
   UserCog,
   Menu,
-  X
-} from 'lucide-react';
-import authService from '../services/authService';
+  X,
+} from "lucide-react";
+import authService from "../services/authService";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -34,12 +34,12 @@ const Sidebar = () => {
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isMobileMenuOpen]);
 
@@ -53,132 +53,134 @@ const Sidebar = () => {
 
   const navigation = [
     {
-      name: 'Dashboard',
-      href: '/dashboard',
+      name: "Dashboard",
+      href: "/dashboard",
       icon: Home,
-      roles: ['admin', 'inputer', 'viewer']
+      roles: ["admin", "inputer", "viewer"],
     },
     {
-      name: 'Data Breakdown',
-      href: '/breakdown',
+      name: "Data Breakdown",
+      href: "/breakdown",
       icon: AlertTriangle,
-      roles: ['admin', 'inputer', 'viewer']
+      roles: ["admin", "inputer", "viewer"],
     },
     {
-      name: 'Spare Parts',
-      href: '/spare-parts',
+      name: "Spare Parts",
+      href: "/spare-parts",
       icon: Package,
-      roles: ['admin', 'inputer']
+      roles: ["admin", "inputer"],
     },
     {
-      name: 'Petty Cash',
-      href: '/petty-cash',
+      name: "Petty Cash",
+      href: "/petty-cash",
       icon: CreditCard,
-      roles: ['admin', 'inputer']
+      roles: ["admin", "inputer"],
     },
     {
-      name: 'Reports',
-      href: '/reports',
+      name: "Reports",
+      href: "/reports",
       icon: BarChart3,
-      roles: ['admin', 'inputer', 'viewer']
+      roles: ["admin", "inputer", "viewer"],
     },
     {
-      name: 'Daily Breakdown Report',
-      href: '/reports/daily-breakdown',
+      name: "Daily Breakdown Report",
+      href: "/reports/daily-breakdown",
       icon: FileText,
-      roles: ['admin', 'inputer', 'viewer', 'report_viewer']
+      roles: ["admin", "inputer", "viewer", "report_viewer"],
     },
     {
-      name: 'Unit Downtime',
-      href: '/reports/unit-downtime',
+      name: "Unit Downtime",
+      href: "/reports/unit-downtime",
       icon: Clock,
-      roles: ['admin', 'inputer', 'viewer']
+      roles: ["admin", "inputer", "viewer"],
     },
     {
-      name: 'Physical Availability',
-      href: '/reports/physical-availability',
+      name: "Physical Availability",
+      href: "/reports/physical-availability",
       icon: TrendingUp,
-      roles: ['admin', 'inputer', 'viewer']
+      roles: ["admin", "inputer", "viewer"],
     },
     {
-      name: 'TV Display Mode',
-      href: '/display/daily-breakdown',
+      name: "TV Display Mode",
+      href: "/display/daily-breakdown",
       icon: Monitor,
-      roles: ['admin', 'report_viewer'] // Only admin and report_viewer can access TV display
-    }
+      roles: ["admin", "report_viewer"], // Only admin and report_viewer can access TV display
+    },
   ];
 
   const masterDataNavigation = [
     {
-      name: 'Manajemen User',
-      href: '/admin/users',
+      name: "Manajemen User",
+      href: "/admin/users",
       icon: UserCog,
-      roles: ['admin']
+      roles: ["admin"],
     },
     {
-      name: 'Equipment',
-      href: '/master/equipment',
+      name: "Equipment",
+      href: "/master/equipment",
       icon: Monitor,
-      roles: ['admin']
+      roles: ["admin"],
     },
     {
-      name: 'Mekanik',
-      href: '/master/mechanics',
+      name: "Mekanik",
+      href: "/master/mechanics",
       icon: Users,
-      roles: ['admin']
+      roles: ["admin"],
     },
     {
-      name: 'Parts',
-      href: '/master/parts',
+      name: "Parts",
+      href: "/master/parts",
       icon: Wrench,
-      roles: ['admin']
+      roles: ["admin"],
     },
     {
-      name: 'Lokasi',
-      href: '/master/locations',
+      name: "Lokasi",
+      href: "/master/locations",
       icon: MapPin,
-      roles: ['admin']
+      roles: ["admin"],
     },
     {
-      name: 'Parameter Biaya',
-      href: '/master/cost-parameters',
+      name: "Parameter Biaya",
+      href: "/master/cost-parameters",
       icon: Settings,
-      roles: ['admin']
+      roles: ["admin"],
     },
     {
-      name: 'Customer',
-      href: '/master/customers',
+      name: "Customer",
+      href: "/master/customers",
       icon: Users,
-      roles: ['admin', 'inputer']
-    }
+      roles: ["admin", "inputer"],
+    },
   ];
 
   const filterNavigationByRole = (navItems) => {
-    return navItems.filter(item => item.roles.includes(user?.role));
+    return navItems.filter((item) => item.roles.includes(user?.role));
   };
 
   const getLinkClass = (href) => {
-    const baseClass = "group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200";
-    
+    const baseClass =
+      "group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200";
+
     // Exact match
     if (location.pathname === href) {
       return `${baseClass} bg-primary-600 text-white shadow-md`;
     }
-    
+
     // Special handling for /reports to avoid matching /reports/* subroutes
-    if (href === '/reports') {
+    if (href === "/reports") {
       // Only active if exact match, not for subroutes
-      const isActive = location.pathname === '/reports';
+      const isActive = location.pathname === "/reports";
       return isActive
         ? `${baseClass} bg-primary-600 text-white shadow-md`
         : `${baseClass} text-gray-700 hover:bg-primary-50 hover:text-primary-700`;
     }
-    
+
     // For other routes, check if pathname starts with href (but not exact parent match)
-    const isActive = href !== '/dashboard' && 
-                     location.pathname.startsWith(href) && 
-                     (location.pathname === href || location.pathname.startsWith(href + '/'));
-    
+    const isActive =
+      href !== "/dashboard" &&
+      location.pathname.startsWith(href) &&
+      (location.pathname === href || location.pathname.startsWith(href + "/"));
+
     return isActive
       ? `${baseClass} bg-primary-600 text-white shadow-md`
       : `${baseClass} text-gray-700 hover:bg-primary-50 hover:text-primary-700`;
@@ -186,25 +188,26 @@ const Sidebar = () => {
 
   const getIconClass = (href) => {
     const baseClass = "mr-3 flex-shrink-0 h-5 w-5 transition-colors";
-    
+
     // Exact match
     if (location.pathname === href) {
       return `${baseClass} text-white`;
     }
-    
+
     // Special handling for /reports to avoid matching /reports/* subroutes
-    if (href === '/reports') {
-      const isActive = location.pathname === '/reports';
+    if (href === "/reports") {
+      const isActive = location.pathname === "/reports";
       return isActive
         ? `${baseClass} text-white`
         : `${baseClass} text-gray-500 group-hover:text-primary-600`;
     }
-    
+
     // For other routes, check if pathname starts with href (but not exact parent match)
-    const isActive = href !== '/dashboard' && 
-                     location.pathname.startsWith(href) && 
-                     (location.pathname === href || location.pathname.startsWith(href + '/'));
-    
+    const isActive =
+      href !== "/dashboard" &&
+      location.pathname.startsWith(href) &&
+      (location.pathname === href || location.pathname.startsWith(href + "/"));
+
     return isActive
       ? `${baseClass} text-white`
       : `${baseClass} text-gray-500 group-hover:text-primary-600`;
@@ -216,9 +219,7 @@ const Sidebar = () => {
       <div className="flex items-center justify-between h-16 px-4 bg-primary-700">
         <div className="flex items-center space-x-2">
           <Database className="h-8 w-8 text-white" />
-          <div className="text-white font-bold text-lg">
-            SMBE
-          </div>
+          <div className="text-white font-bold text-lg">FMM-Service</div>
         </div>
         {/* Close button for mobile */}
         <button
@@ -286,9 +287,7 @@ const Sidebar = () => {
             <p className="text-sm font-medium text-gray-900 truncate">
               {user?.name}
             </p>
-            <p className="text-xs text-gray-500 capitalize">
-              {user?.role}
-            </p>
+            <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
           </div>
         </div>
       </div>
@@ -322,7 +321,11 @@ const Sidebar = () => {
           inset-y-0 left-0
           z-40
           transform transition-transform duration-300 ease-in-out
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${
+            isMobileMenuOpen
+              ? "translate-x-0"
+              : "-translate-x-full lg:translate-x-0"
+          }
         `}
       >
         {sidebarContent}

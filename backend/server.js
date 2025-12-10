@@ -933,12 +933,52 @@ app.post('/api/master/equipment-models', authenticateToken, requireRole(['admin'
 // Customer Master
 app.get('/api/master/customers', authenticateToken, async (req, res) => {
     try {
-        const [rows] = await pool.execute(`
+        const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+        const limit = 10; // fixed page size as requested
+        const offset = (page - 1) * limit;
+        const search = (req.query.search || '').toLowerCase().trim();
+
+        let whereClause = 'WHERE is_active = true';
+        const params = [];
+
+        if (search) {
+            whereClause += `
+                AND (
+                    LOWER(name) LIKE ? OR
+                    LOWER(code) LIKE ? OR
+                    LOWER(contact_person) LIKE ?
+                )
+            `;
+            const likeParam = `%${search}%`;
+            params.push(likeParam, likeParam, likeParam);
+        }
+
+        const [countRows] = await pool.execute(
+            `SELECT COUNT(*) as total FROM customer_master ${whereClause}`,
+            params
+        );
+        const total = countRows?.[0]?.total || 0;
+        const totalPages = Math.max(Math.ceil(total / limit), 1);
+
+        const [rows] = await pool.execute(
+            `
             SELECT * FROM customer_master 
-            WHERE is_active = true
+            ${whereClause}
             ORDER BY name
-        `);
-        res.json(rows);
+            LIMIT ? OFFSET ?
+        `,
+            [...params, limit, offset]
+        );
+
+        res.json({
+            data: rows,
+            pagination: {
+                page,
+                pageSize: limit,
+                total,
+                totalPages,
+            },
+        });
     } catch (error) {
         console.error('Get customers error:', error);
         res.status(500).json({ message: 'Internal server error' });

@@ -52,7 +52,7 @@ const Login = () => {
               <Database className="h-7 w-7 text-white" />
             </div>
             <div className="text-left">
-              <h1 className="text-2xl font-bold text-gray-900">SMBE</h1>
+              <h1 className="text-2xl font-bold text-gray-900">FMM-Service</h1>
               <p className="text-sm text-gray-500">Sistem Manajemen Breakdown Equipment</p>
             </div>
           </Link>

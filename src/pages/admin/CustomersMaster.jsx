@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Plus, Save, Search, Users, X, Edit, Trash2 } from 'lucide-react';
 import Header from '../../components/Header';
 import authService from '../../services/authService';
@@ -13,6 +13,11 @@ const CustomersMaster = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 10;
   const [formData, setFormData] = useState({
     name: '',
     code: '',
@@ -22,22 +27,44 @@ const CustomersMaster = () => {
     address: ''
   });
 
+  // Debounce search term
   useEffect(() => {
-    loadCustomers();
-  }, []);
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setPage(1); // Reset to page 1 when search changes
+    }, 500);
 
-  const loadCustomers = async () => {
-    try {
-      setLoading(true);
-      const res = await masterAPI.getCustomers();
-      setCustomers(res.data);
-    } catch (error) {
-      console.error('Error loading customers:', error);
-      alert('Gagal memuat data customer');
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const loadCustomers = useCallback(
+    async (targetPage = 1) => {
+      try {
+        setLoading(true);
+        const res = await masterAPI.getCustomers({
+          page: targetPage,
+          search: debouncedSearchTerm.trim() || undefined,
+        });
+        const { data = [], pagination } = res.data || {};
+        setCustomers(data);
+        setTotal(pagination?.total ?? data.length);
+        setTotalPages(pagination?.totalPages ?? 1);
+        if (pagination?.page) {
+          setPage(pagination.page);
+        }
+      } catch (error) {
+        console.error('Error loading customers:', error);
+        alert('Gagal memuat data customer');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [debouncedSearchTerm]
+  );
+
+  useEffect(() => {
+    loadCustomers(page);
+  }, [page, loadCustomers]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,7 +78,7 @@ const CustomersMaster = () => {
       }
       setShowModal(false);
       resetForm();
-      loadCustomers();
+      loadCustomers(page);
     } catch (error) {
       console.error('Error saving customer:', error);
       alert('Gagal menyimpan data customer');
@@ -88,21 +115,21 @@ const CustomersMaster = () => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus customer ini?')) return;
     try {
       await masterAPI.deleteCustomer(id);
-      loadCustomers();
+      loadCustomers(page);
     } catch (error) {
       console.error('Error deleting customer:', error);
       alert('Gagal menghapus data customer');
     }
   };
 
-  const filteredCustomers = customers.filter((item) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      item.name?.toLowerCase().includes(term) ||
-      item.code?.toLowerCase().includes(term) ||
-      item.contact_person?.toLowerCase().includes(term)
-    );
-  });
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setPage(newPage);
+  };
+
+  const startIndex = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(page * pageSize, total);
+
 
   if (loading) {
     return (
@@ -169,7 +196,7 @@ const CustomersMaster = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredCustomers.map((item) => (
+              {customers.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {item.code || '-'}
@@ -206,10 +233,36 @@ const CustomersMaster = () => {
               ))}
             </tbody>
           </table>
-          {filteredCustomers.length === 0 && (
+          {customers.length === 0 && (
             <div className="text-center py-12">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">Tidak ada data customer</p>
+            </div>
+          )}
+          {total > 0 && (
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between px-6 py-4 bg-gray-50 space-y-3 md:space-y-0 border-t border-gray-200">
+              <div className="text-sm text-gray-600">
+                Menampilkan {startIndex}-{endIndex} dari {total} data
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page <= 1}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                >
+                  Sebelumnya
+                </button>
+                <span className="text-sm text-gray-700 px-4">
+                  Halaman {page} dari {totalPages}
+                </span>
+                <button
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page >= totalPages}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                >
+                  Selanjutnya
+                </button>
+              </div>
             </div>
           )}
         </div>
