@@ -86,7 +86,7 @@ class AuthService {
   canInputData() {
     // Only admin can input breakdown, spare parts data
     // Inputer role is now view-only for reports
-    return ['admin'].includes(this.user?.role);
+    return ['admin', 'inputer'].includes(this.user?.role);
   }
 
   canViewData() {
