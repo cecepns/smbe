@@ -304,7 +304,7 @@ const PettyCashPage = () => {
             />
           </div>
           <div className="flex items-center space-x-2">
-            {authService.getUserRole() === 'inputer' && (
+            {authService.getUserRole() === 'inputer' || authService.getUserRole() === 'admin' && (
               <button
                 onClick={() => {
                   resetForm();
