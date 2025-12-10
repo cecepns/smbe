@@ -144,6 +144,12 @@ const Sidebar = () => {
       href: '/master/cost-parameters',
       icon: Settings,
       roles: ['admin']
+    },
+    {
+      name: 'Customer',
+      href: '/master/customers',
+      icon: Users,
+      roles: ['admin', 'inputer']
     }
   ];
 
@@ -244,8 +250,8 @@ const Sidebar = () => {
           })}
         </div>
 
-        {/* Master Data Section - Only for Admin */}
-        {user?.role === 'admin' && (
+        {/* Master Data Section */}
+        {filterNavigationByRole(masterDataNavigation).length > 0 && (
           <div className="pt-6">
             <div className="px-3 mb-2">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">

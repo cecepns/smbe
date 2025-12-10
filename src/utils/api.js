@@ -96,6 +96,8 @@ export const masterAPI = {
   createEquipmentModel: (data) => api.post('/master/equipment-models', data),
   getCustomers: () => api.get('/master/customers'),
   createCustomer: (data) => api.post('/master/customers', data),
+  updateCustomer: (id, data) => api.put(`/master/customers/${id}`, data),
+  deleteCustomer: (id) => api.delete(`/master/customers/${id}`),
   
   // Mechanic Master Data
   getSpecializations: () => api.get('/master/specializations'),

@@ -945,7 +945,7 @@ app.get('/api/master/customers', authenticateToken, async (req, res) => {
     }
 });
 
-app.post('/api/master/customers', authenticateToken, requireRole(['admin']), async (req, res) => {
+app.post('/api/master/customers', authenticateToken, requireRole(['admin', 'inputer']), async (req, res) => {
     try {
         const { name, code, contact_person, contact_phone, contact_email, address } = req.body;
         const [result] = await pool.execute(`
@@ -954,7 +954,38 @@ app.post('/api/master/customers', authenticateToken, requireRole(['admin']), asy
         `, [name, code, contact_person, contact_phone, contact_email, address]);
         res.status(201).json({ id: result.insertId, message: 'Customer created successfully' });
     } catch (error) {
-        console.error('Create customer error:', error);
+    console.error('Create customer error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.put('/api/master/customers/:id', authenticateToken, requireRole(['admin', 'inputer']), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, code, contact_person, contact_phone, contact_email, address } = req.body;
+        await pool.execute(`
+            UPDATE customer_master 
+            SET name = ?, code = ?, contact_person = ?, contact_phone = ?, contact_email = ?, address = ?
+            WHERE id = ?
+        `, [name, code, contact_person, contact_phone, contact_email, address, id]);
+        res.json({ message: 'Customer updated successfully' });
+    } catch (error) {
+        console.error('Update customer error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.delete('/api/master/customers/:id', authenticateToken, requireRole(['admin', 'inputer']), async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.execute(`
+            UPDATE customer_master 
+            SET is_active = false
+            WHERE id = ?
+        `, [id]);
+        res.json({ message: 'Customer deleted successfully' });
+    } catch (error) {
+        console.error('Delete customer error:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });

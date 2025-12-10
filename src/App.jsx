@@ -13,6 +13,7 @@ import MechanicsMaster from './pages/admin/MechanicsMaster';
 import PartsMaster from './pages/admin/PartsMaster';
 import LocationsMaster from './pages/admin/LocationsMaster';
 import CostParametersMaster from './pages/admin/CostParametersMaster';
+import CustomersMaster from './pages/admin/CustomersMaster';
 import SparePartsPage from './pages/SparePartsPage';
 import PettyCashPage from './pages/PettyCashPage';
 import ReportsPage from './pages/ReportsPage';
@@ -190,7 +191,7 @@ function App() {
           }
         />
         
-        {/* Master Data Routes - Admin Only */}
+        {/* Master Data Routes */}
         <Route
           path="/master/equipment"
           element={
@@ -230,6 +231,17 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <LocationsMaster />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/master/customers"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <CustomersMaster />
               </MainLayout>
             </ProtectedRoute>
           }

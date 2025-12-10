@@ -228,3 +228,4 @@ INSERT IGNORE INTO part_brand_master (name) VALUES
 -- END OF MIGRATION
 -- =============================================
 
+
