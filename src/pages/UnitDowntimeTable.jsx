@@ -200,17 +200,17 @@ const UnitDowntimeTable = () => {
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">NO</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">SITE</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">JOB Type</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase whitespace-nowrap min-w-[100px]">JOB Type</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">DATE</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">CODE UNIT/NO.POL</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">MODEL UNIT</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase whitespace-nowrap min-w-[160px]">CODE UNIT/NO.POL</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">PROBLEM</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase whitespace-nowrap min-w-[120px]">MODEL UNIT</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">KM/HM</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">LOCATION</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">CUSTOMER</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">START BD (DATE & TIME)</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">AGING (DAYS)</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">DURATION (HOURS)</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">PROBLEM</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase whitespace-nowrap min-w-[200px]">START BD (DATE & TIME)</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase whitespace-nowrap min-w-[130px]">AGING (DAYS)</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase whitespace-nowrap min-w-[150px]">DURATION (HOURS)</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -218,10 +218,13 @@ const UnitDowntimeTable = () => {
                   <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">{index + 1}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">{item.lokasi || '-'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{item.kategori_perawatan || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap min-w-[120px]">{item.kategori_perawatan || '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">{formatDate(item.tanggal)}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.equipment_number}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap min-w-[160px]">{item.equipment_number}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">
+                      {item.problem || item.note_plant || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap min-w-[120px]">
                       {equipment.find(eq => eq.equipment_number === item.equipment_number)?.model || '-'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">{item.hm_breakdown || item.km || '-'}</td>
@@ -229,17 +232,14 @@ const UnitDowntimeTable = () => {
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {equipment.find(eq => eq.equipment_number === item.equipment_number)?.customer || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 border-r-2 border-green-200">
+                    <td className="px-4 py-3 text-sm text-gray-900 border-r-2 border-green-200 whitespace-nowrap min-w-[200px]">
                       {formatDateTime(item.jam_mulai)}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-green-50">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-green-50 whitespace-nowrap min-w-[130px]">
                       {item.aging_days} hari
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap min-w-[150px]">
                       {item.duration_hours} jam
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">
-                      {item.problem || item.note_plant || '-'}
                     </td>
                   </tr>
                 ))}
