@@ -6,6 +6,11 @@ import { masterAPI } from '../../utils/api';
 const EquipmentMaster = () => {
   const [equipment, setEquipment] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [equipmentTypes, setEquipmentTypes] = useState([]);
+  const [equipmentBrands, setEquipmentBrands] = useState([]);
+  const [equipmentCategories, setEquipmentCategories] = useState([]);
+  const [equipmentModels, setEquipmentModels] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -32,12 +37,30 @@ const EquipmentMaster = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [equipmentRes, locationsRes] = await Promise.all([
+      const [
+        equipmentRes, 
+        locationsRes, 
+        typesRes, 
+        brandsRes, 
+        categoriesRes, 
+        modelsRes, 
+        customersRes
+      ] = await Promise.all([
         masterAPI.getEquipment(),
-        masterAPI.getLocations()
+        masterAPI.getLocations(),
+        masterAPI.getEquipmentTypes(),
+        masterAPI.getEquipmentBrands(),
+        masterAPI.getEquipmentCategories(),
+        masterAPI.getEquipmentModels(),
+        masterAPI.getCustomers()
       ]);
       setEquipment(equipmentRes.data);
       setLocations(locationsRes.data);
+      setEquipmentTypes(typesRes.data);
+      setEquipmentBrands(brandsRes.data);
+      setEquipmentCategories(categoriesRes.data);
+      setEquipmentModels(modelsRes.data);
+      setCustomers(customersRes.data);
     } catch (error) {
       console.error('Error loading data:', error);
       alert('Gagal memuat data');
@@ -173,7 +196,7 @@ const EquipmentMaster = () => {
                   Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Plate Number
+                  No Polisi
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Lokasi
@@ -287,48 +310,64 @@ const EquipmentMaster = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Type
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                  >
+                    <option value="">Pilih Type</option>
+                    {equipmentTypes.map(type => (
+                      <option key={type.id} value={type.name}>{type.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Category
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                  >
+                    <option value="">Pilih Category</option>
+                    {equipmentCategories.map(cat => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Brand
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.brand}
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                  >
+                    <option value="">Pilih Brand</option>
+                    {equipmentBrands.map(brand => (
+                      <option key={brand.id} value={brand.name}>{brand.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Model
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.model}
                     onChange={(e) => setFormData({ ...formData, model: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                  >
+                    <option value="">Pilih Model</option>
+                    {equipmentModels.map(model => (
+                      <option key={model.id} value={model.name}>{model.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
@@ -357,7 +396,7 @@ const EquipmentMaster = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Plate Number
+                    No Polisi
                   </label>
                   <input
                     type="text"
@@ -371,12 +410,16 @@ const EquipmentMaster = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Customer
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.customer}
                     onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                  >
+                    <option value="">Pilih Customer</option>
+                    {customers.map(customer => (
+                      <option key={customer.id} value={customer.name}>{customer.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div className="col-span-2">

@@ -5,6 +5,9 @@ import { masterAPI } from '../../utils/api';
 
 const PartsMaster = () => {
   const [parts, setParts] = useState([]);
+  const [partCategories, setPartCategories] = useState([]);
+  const [partUnits, setPartUnits] = useState([]);
+  const [partBrands, setPartBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -30,8 +33,16 @@ const PartsMaster = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const res = await masterAPI.getParts();
-      setParts(res.data);
+      const [partsRes, categoriesRes, unitsRes, brandsRes] = await Promise.all([
+        masterAPI.getParts(),
+        masterAPI.getPartCategories(),
+        masterAPI.getPartUnits(),
+        masterAPI.getPartBrands()
+      ]);
+      setParts(partsRes.data);
+      setPartCategories(categoriesRes.data);
+      setPartUnits(unitsRes.data);
+      setPartBrands(brandsRes.data);
     } catch (error) {
       console.error('Error loading data:', error);
       alert('Gagal memuat data');
@@ -286,12 +297,16 @@ const PartsMaster = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Category
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                  >
+                    <option value="">Pilih Category</option>
+                    {partCategories.map(cat => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
@@ -310,25 +325,32 @@ const PartsMaster = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Brand
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.brand}
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                  >
+                    <option value="">Pilih Brand</option>
+                    {partBrands.map(brand => (
+                      <option key={brand.id} value={brand.name}>{brand.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Unit
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.unit}
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    placeholder="pcs, kg, meter, etc"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                  >
+                    <option value="">Pilih Unit</option>
+                    {partUnits.map(unit => (
+                      <option key={unit.id} value={unit.name}>{unit.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>

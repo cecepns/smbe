@@ -84,6 +84,30 @@ export const masterAPI = {
   // Cost Parameters
   getCostParameters: () => api.get('/master/cost-parameters'),
   updateCostParameters: (data) => api.put('/master/cost-parameters', data),
+  
+  // Equipment Master Data
+  getEquipmentTypes: () => api.get('/master/equipment-types'),
+  createEquipmentType: (data) => api.post('/master/equipment-types', data),
+  getEquipmentBrands: () => api.get('/master/equipment-brands'),
+  createEquipmentBrand: (data) => api.post('/master/equipment-brands', data),
+  getEquipmentCategories: () => api.get('/master/equipment-categories'),
+  createEquipmentCategory: (data) => api.post('/master/equipment-categories', data),
+  getEquipmentModels: () => api.get('/master/equipment-models'),
+  createEquipmentModel: (data) => api.post('/master/equipment-models', data),
+  getCustomers: () => api.get('/master/customers'),
+  createCustomer: (data) => api.post('/master/customers', data),
+  
+  // Mechanic Master Data
+  getSpecializations: () => api.get('/master/specializations'),
+  createSpecialization: (data) => api.post('/master/specializations', data),
+  
+  // Part Master Data
+  getPartCategories: () => api.get('/master/part-categories'),
+  createPartCategory: (data) => api.post('/master/part-categories', data),
+  getPartUnits: () => api.get('/master/part-units'),
+  createPartUnit: (data) => api.post('/master/part-units', data),
+  getPartBrands: () => api.get('/master/part-brands'),
+  createPartBrand: (data) => api.post('/master/part-brands', data),
 };
 
 // Spare parts endpoints

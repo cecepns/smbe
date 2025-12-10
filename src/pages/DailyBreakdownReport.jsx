@@ -6,15 +6,16 @@ import authService from '../services/authService';
 
 const DailyBreakdownReport = () => {
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [stopDate, setStopDate] = useState(new Date().toISOString().split('T')[0]);
   const [groupedData, setGroupedData] = useState({});
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
-        date_from: selectedDate,
-        date_to: selectedDate,
+        date_from: startDate,
+        date_to: stopDate,
         limit: 1000
       };
 
@@ -43,7 +44,7 @@ const DailyBreakdownReport = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate]);
+  }, [startDate, stopDate]);
 
   useEffect(() => {
     loadData();
@@ -99,11 +100,20 @@ const DailyBreakdownReport = () => {
         <div className="mb-3 bg-white rounded-lg shadow-sm p-3">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tanggal</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Start Date</label>
               <input
                 type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Stop Date</label>
+              <input
+                type="date"
+                value={stopDate}
+                onChange={(e) => setStopDate(e.target.value)}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
@@ -144,7 +154,9 @@ const DailyBreakdownReport = () => {
         <div className="bg-white rounded-lg shadow-sm p-4">
           <div className="text-center mb-3">
             <h2 className="text-xl font-bold text-gray-900">DAILY BREAKDOWN REPORT</h2>
-            <p className="text-sm text-gray-600 mt-1">Tanggal: {formatDate(selectedDate)}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Periode: {formatDate(startDate)} {startDate !== stopDate ? `- ${formatDate(stopDate)}` : ''}
+            </p>
           </div>
 
           <div className="overflow-x-auto">

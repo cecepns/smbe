@@ -809,6 +809,273 @@ app.get('/api/master/cost-parameters', authenticateToken, async (req, res) => {
 });
 
 // =============================================
+// NEW MASTER DATA ROUTES
+// =============================================
+
+// Equipment Type Master
+app.get('/api/master/equipment-types', authenticateToken, async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT * FROM equipment_type_master 
+            WHERE is_active = true
+            ORDER BY name
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('Get equipment types error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/api/master/equipment-types', authenticateToken, requireRole(['admin']), async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const [result] = await pool.execute(`
+            INSERT INTO equipment_type_master (name, description)
+            VALUES (?, ?)
+        `, [name, description]);
+        res.status(201).json({ id: result.insertId, message: 'Equipment type created successfully' });
+    } catch (error) {
+        console.error('Create equipment type error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Equipment Brand Master
+app.get('/api/master/equipment-brands', authenticateToken, async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT * FROM equipment_brand_master 
+            WHERE is_active = true
+            ORDER BY name
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('Get equipment brands error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/api/master/equipment-brands', authenticateToken, requireRole(['admin']), async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const [result] = await pool.execute(`
+            INSERT INTO equipment_brand_master (name, description)
+            VALUES (?, ?)
+        `, [name, description]);
+        res.status(201).json({ id: result.insertId, message: 'Equipment brand created successfully' });
+    } catch (error) {
+        console.error('Create equipment brand error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Equipment Category Master
+app.get('/api/master/equipment-categories', authenticateToken, async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT * FROM equipment_category_master 
+            WHERE is_active = true
+            ORDER BY name
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('Get equipment categories error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/api/master/equipment-categories', authenticateToken, requireRole(['admin']), async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const [result] = await pool.execute(`
+            INSERT INTO equipment_category_master (name, description)
+            VALUES (?, ?)
+        `, [name, description]);
+        res.status(201).json({ id: result.insertId, message: 'Equipment category created successfully' });
+    } catch (error) {
+        console.error('Create equipment category error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Equipment Model Master
+app.get('/api/master/equipment-models', authenticateToken, async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT em.*, eb.name as brand_name
+            FROM equipment_model_master em
+            LEFT JOIN equipment_brand_master eb ON em.brand_id = eb.id
+            WHERE em.is_active = true
+            ORDER BY eb.name, em.name
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('Get equipment models error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/api/master/equipment-models', authenticateToken, requireRole(['admin']), async (req, res) => {
+    try {
+        const { name, brand_id, description } = req.body;
+        const [result] = await pool.execute(`
+            INSERT INTO equipment_model_master (name, brand_id, description)
+            VALUES (?, ?, ?)
+        `, [name, brand_id || null, description]);
+        res.status(201).json({ id: result.insertId, message: 'Equipment model created successfully' });
+    } catch (error) {
+        console.error('Create equipment model error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Customer Master
+app.get('/api/master/customers', authenticateToken, async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT * FROM customer_master 
+            WHERE is_active = true
+            ORDER BY name
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('Get customers error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/api/master/customers', authenticateToken, requireRole(['admin']), async (req, res) => {
+    try {
+        const { name, code, contact_person, contact_phone, contact_email, address } = req.body;
+        const [result] = await pool.execute(`
+            INSERT INTO customer_master (name, code, contact_person, contact_phone, contact_email, address)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `, [name, code, contact_person, contact_phone, contact_email, address]);
+        res.status(201).json({ id: result.insertId, message: 'Customer created successfully' });
+    } catch (error) {
+        console.error('Create customer error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Specialization Master
+app.get('/api/master/specializations', authenticateToken, async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT * FROM specialization_master 
+            WHERE is_active = true
+            ORDER BY name
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('Get specializations error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/api/master/specializations', authenticateToken, requireRole(['admin']), async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const [result] = await pool.execute(`
+            INSERT INTO specialization_master (name, description)
+            VALUES (?, ?)
+        `, [name, description]);
+        res.status(201).json({ id: result.insertId, message: 'Specialization created successfully' });
+    } catch (error) {
+        console.error('Create specialization error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Part Category Master
+app.get('/api/master/part-categories', authenticateToken, async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT * FROM part_category_master 
+            WHERE is_active = true
+            ORDER BY name
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('Get part categories error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/api/master/part-categories', authenticateToken, requireRole(['admin']), async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const [result] = await pool.execute(`
+            INSERT INTO part_category_master (name, description)
+            VALUES (?, ?)
+        `, [name, description]);
+        res.status(201).json({ id: result.insertId, message: 'Part category created successfully' });
+    } catch (error) {
+        console.error('Create part category error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Part Unit Master
+app.get('/api/master/part-units', authenticateToken, async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT * FROM part_unit_master 
+            WHERE is_active = true
+            ORDER BY name
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('Get part units error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/api/master/part-units', authenticateToken, requireRole(['admin']), async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const [result] = await pool.execute(`
+            INSERT INTO part_unit_master (name, description)
+            VALUES (?, ?)
+        `, [name, description]);
+        res.status(201).json({ id: result.insertId, message: 'Part unit created successfully' });
+    } catch (error) {
+        console.error('Create part unit error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Part Brand Master
+app.get('/api/master/part-brands', authenticateToken, async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT * FROM part_brand_master 
+            WHERE is_active = true
+            ORDER BY name
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('Get part brands error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/api/master/part-brands', authenticateToken, requireRole(['admin']), async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const [result] = await pool.execute(`
+            INSERT INTO part_brand_master (name, description)
+            VALUES (?, ?)
+        `, [name, description]);
+        res.status(201).json({ id: result.insertId, message: 'Part brand created successfully' });
+    } catch (error) {
+        console.error('Create part brand error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// =============================================
 // SPARE PARTS ROUTES
 // =============================================
 

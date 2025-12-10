@@ -6,6 +6,7 @@ import { masterAPI } from '../../utils/api';
 const MechanicsMaster = () => {
   const [mechanics, setMechanics] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [specializations, setSpecializations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -30,12 +31,14 @@ const MechanicsMaster = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [mechanicsRes, locationsRes] = await Promise.all([
+      const [mechanicsRes, locationsRes, specializationsRes] = await Promise.all([
         masterAPI.getMechanics(),
-        masterAPI.getLocations()
+        masterAPI.getLocations(),
+        masterAPI.getSpecializations()
       ]);
       setMechanics(mechanicsRes.data);
       setLocations(locationsRes.data);
+      setSpecializations(specializationsRes.data);
     } catch (error) {
       console.error('Error loading data:', error);
       alert('Gagal memuat data');
@@ -314,12 +317,16 @@ const MechanicsMaster = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Specialization
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.specialization}
                     onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
+                  >
+                    <option value="">Pilih Specialization</option>
+                    {specializations.map(spec => (
+                      <option key={spec.id} value={spec.name}>{spec.name}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
