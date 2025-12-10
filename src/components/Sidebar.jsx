@@ -74,7 +74,7 @@ const Sidebar = () => {
       name: 'Petty Cash',
       href: '/petty-cash',
       icon: CreditCard,
-      roles: ['admin', 'inputer']
+      roles: ['admin']
     },
     {
       name: 'Reports',

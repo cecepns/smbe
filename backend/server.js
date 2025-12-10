@@ -1236,7 +1236,7 @@ app.delete('/api/spare-parts/:id', authenticateToken, requireRole(['admin']), as
 // PETTY CASH ROUTES
 // =============================================
 
-app.get('/api/petty-cash', authenticateToken, requireRole(['admin', 'viewer', 'inputer']), async (req, res) => {
+app.get('/api/petty-cash', authenticateToken, requireRole(['admin', 'viewer']), async (req, res) => {
     try {
         const { breakdown_id, expense_type, date_from, date_to, limit = 10, offset = 0 } = req.query;
         
