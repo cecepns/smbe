@@ -1236,7 +1236,7 @@ app.delete('/api/spare-parts/:id', authenticateToken, requireRole(['admin']), as
 // PETTY CASH ROUTES
 // =============================================
 
-app.get('/api/petty-cash', authenticateToken, requireRole(['admin', 'viewer']), async (req, res) => {
+app.get('/api/petty-cash', authenticateToken, requireRole(['admin', 'viewer', 'inputer']), async (req, res) => {
     try {
         const { breakdown_id, expense_type, date_from, date_to, limit = 10, offset = 0 } = req.query;
         
@@ -1309,7 +1309,7 @@ app.get('/api/petty-cash', authenticateToken, requireRole(['admin', 'viewer']), 
     }
 });
 
-app.post('/api/petty-cash', authenticateToken, requireRole(['admin']), async (req, res) => {
+app.post('/api/petty-cash', authenticateToken, requireRole(['admin', 'inputer']), async (req, res) => {
     try {
         const {
             breakdown_id, expense_date, expense_type, description, amount,
@@ -1336,7 +1336,7 @@ app.post('/api/petty-cash', authenticateToken, requireRole(['admin']), async (re
     }
 });
 
-app.put('/api/petty-cash/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
+app.put('/api/petty-cash/:id', authenticateToken, requireRole(['admin', 'inputer']), async (req, res) => {
     try {
         const { id } = req.params;
         const updateData = req.body;
@@ -1361,7 +1361,7 @@ app.put('/api/petty-cash/:id', authenticateToken, requireRole(['admin']), async 
     }
 });
 
-app.delete('/api/petty-cash/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
+app.delete('/api/petty-cash/:id', authenticateToken, requireRole(['admin', 'inputer']), async (req, res) => {
     try {
         const { id } = req.params;
 
