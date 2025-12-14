@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, X, Save, Monitor } from 'lucide-react';
-import Header from '../../components/Header';
-import { masterAPI } from '../../utils/api';
+import React, { useState, useEffect } from "react";
+import { Plus, Edit, Trash2, Search, X, Save, Monitor } from "lucide-react";
+import Header from "../../components/Header";
+import { masterAPI } from "../../utils/api";
 
 const EquipmentMaster = () => {
   const [equipment, setEquipment] = useState([]);
@@ -14,20 +14,20 @@ const EquipmentMaster = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
-    equipment_number: '',
-    name: '',
-    type: '',
-    category: '',
-    brand: '',
-    model: '',
-    year_manufacture: '',
-    serial_number: '',
-    plate_number: '',
-    customer: '',
-    location_id: '',
-    specifications: {}
+    equipment_number: "",
+    name: "",
+    type: "",
+    category: "",
+    brand: "",
+    model: "",
+    year_manufacture: "",
+    serial_number: "",
+    plate_number: "",
+    customer: "",
+    location_id: "",
+    specifications: {},
   });
 
   useEffect(() => {
@@ -38,13 +38,13 @@ const EquipmentMaster = () => {
     try {
       setLoading(true);
       const [
-        equipmentRes, 
-        locationsRes, 
-        typesRes, 
-        brandsRes, 
-        categoriesRes, 
-        modelsRes, 
-        customersRes
+        equipmentRes,
+        locationsRes,
+        typesRes,
+        brandsRes,
+        categoriesRes,
+        modelsRes,
+        customersRes,
       ] = await Promise.all([
         masterAPI.getEquipment(),
         masterAPI.getLocations(),
@@ -52,7 +52,7 @@ const EquipmentMaster = () => {
         masterAPI.getEquipmentBrands(),
         masterAPI.getEquipmentCategories(),
         masterAPI.getEquipmentModels(),
-        masterAPI.getCustomers()
+        masterAPI.getCustomers(),
       ]);
       setEquipment(equipmentRes.data);
       setLocations(locationsRes.data);
@@ -62,8 +62,8 @@ const EquipmentMaster = () => {
       setEquipmentModels(modelsRes.data);
       setCustomers(customersRes.data);
     } catch (error) {
-      console.error('Error loading data:', error);
-      alert('Gagal memuat data');
+      console.error("Error loading data:", error);
+      alert("Gagal memuat data");
     } finally {
       setLoading(false);
     }
@@ -81,64 +81,65 @@ const EquipmentMaster = () => {
       resetForm();
       loadData();
     } catch (error) {
-      console.error('Error saving equipment:', error);
-      alert('Gagal menyimpan data');
+      console.error("Error saving equipment:", error);
+      alert("Gagal menyimpan data");
     }
   };
 
   const handleEdit = (item) => {
     setEditingId(item.id);
     setFormData({
-      equipment_number: item.equipment_number || '',
-      name: item.name || '',
-      type: item.type || '',
-      category: item.category || '',
-      brand: item.brand || '',
-      model: item.model || '',
-      year_manufacture: item.year_manufacture || '',
-      serial_number: item.serial_number || '',
-      plate_number: item.plate_number || '',
-      customer: item.customer || '',
-      location_id: item.location_id || '',
-      specifications: item.specifications || {}
+      equipment_number: item.equipment_number || "",
+      name: item.name || "",
+      type: item.type || "",
+      category: item.category || "",
+      brand: item.brand || "",
+      model: item.model || "",
+      year_manufacture: item.year_manufacture || "",
+      serial_number: item.serial_number || "",
+      plate_number: item.plate_number || "",
+      customer: item.customer || "",
+      location_id: item.location_id || "",
+      specifications: item.specifications || {},
     });
     setShowModal(true);
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus data ini?')) return;
-    
+    if (!window.confirm("Apakah Anda yakin ingin menghapus data ini?")) return;
+
     try {
       await masterAPI.deleteEquipment(id);
       loadData();
     } catch (error) {
-      console.error('Error deleting equipment:', error);
-      alert('Gagal menghapus data');
+      console.error("Error deleting equipment:", error);
+      alert("Gagal menghapus data");
     }
   };
 
   const resetForm = () => {
     setFormData({
-      equipment_number: '',
-      name: '',
-      type: '',
-      category: '',
-      brand: '',
-      model: '',
-      year_manufacture: '',
-      serial_number: '',
-      plate_number: '',
-      customer: '',
-      location_id: '',
-      specifications: {}
+      equipment_number: "",
+      name: "",
+      type: "",
+      category: "",
+      brand: "",
+      model: "",
+      year_manufacture: "",
+      serial_number: "",
+      plate_number: "",
+      customer: "",
+      location_id: "",
+      specifications: {},
     });
     setEditingId(null);
   };
 
-  const filteredEquipment = equipment.filter(item =>
-    item.equipment_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.plate_number?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredEquipment = equipment.filter(
+    (item) =>
+      item.equipment_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.plate_number?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -151,11 +152,11 @@ const EquipmentMaster = () => {
 
   return (
     <div className="flex-1 overflow-auto">
-      <Header 
-        title="Master Equipment" 
+      <Header
+        title="Master Equipment"
         subtitle="Kelola data equipment dan alat berat"
       />
-      
+
       <div className="p-4">
         {/* Actions Bar */}
         <div className="mb-3 flex items-center justify-between">
@@ -183,73 +184,75 @@ const EquipmentMaster = () => {
 
         {/* Table */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Equipment Number
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nama
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  No Polisi
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Lokasi
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredEquipment.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {item.equipment_number}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.type}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.plate_number}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.location_name || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {item.customer || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end space-x-2">
-                      <button
-                        onClick={() => handleEdit(item)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        <Edit className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Equipment Number
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Nama
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    No Polisi
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Lokasi
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Aksi
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredEquipment.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {item.equipment_number}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.type}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.plate_number}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.location_name || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.customer || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end space-x-2">
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          <Edit className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {filteredEquipment.length === 0 && (
             <div className="text-center py-12">
               <Monitor className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -265,7 +268,7 @@ const EquipmentMaster = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-base font-bold text-gray-900">
-                {editingId ? 'Edit Equipment' : 'Tambah Equipment'}
+                {editingId ? "Edit Equipment" : "Tambah Equipment"}
               </h2>
               <button
                 onClick={() => {
@@ -277,7 +280,7 @@ const EquipmentMaster = () => {
                 <X className="h-6 w-6" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-4 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -288,11 +291,16 @@ const EquipmentMaster = () => {
                     type="text"
                     required
                     value={formData.equipment_number}
-                    onChange={(e) => setFormData({ ...formData, equipment_number: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        equipment_number: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Nama *
@@ -301,75 +309,93 @@ const EquipmentMaster = () => {
                     type="text"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Type
                   </label>
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, type: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="">Pilih Type</option>
-                    {equipmentTypes.map(type => (
-                      <option key={type.id} value={type.name}>{type.name}</option>
+                    {equipmentTypes.map((type) => (
+                      <option key={type.id} value={type.name}>
+                        {type.name}
+                      </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Category
                   </label>
                   <select
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="">Pilih Category</option>
-                    {equipmentCategories.map(cat => (
-                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    {equipmentCategories.map((cat) => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Brand
                   </label>
                   <select
                     value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, brand: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="">Pilih Brand</option>
-                    {equipmentBrands.map(brand => (
-                      <option key={brand.id} value={brand.name}>{brand.name}</option>
+                    {equipmentBrands.map((brand) => (
+                      <option key={brand.id} value={brand.name}>
+                        {brand.name}
+                      </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Model
                   </label>
                   <select
                     value={formData.model}
-                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, model: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="">Pilih Model</option>
-                    {equipmentModels.map(model => (
-                      <option key={model.id} value={model.name}>{model.name}</option>
+                    {equipmentModels.map((model) => (
+                      <option key={model.id} value={model.name}>
+                        {model.name}
+                      </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Tahun Pembuatan
@@ -377,11 +403,16 @@ const EquipmentMaster = () => {
                   <input
                     type="number"
                     value={formData.year_manufacture}
-                    onChange={(e) => setFormData({ ...formData, year_manufacture: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        year_manufacture: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Serial Number
@@ -389,11 +420,16 @@ const EquipmentMaster = () => {
                   <input
                     type="text"
                     value={formData.serial_number}
-                    onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        serial_number: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     No Polisi
@@ -401,44 +437,54 @@ const EquipmentMaster = () => {
                   <input
                     type="text"
                     value={formData.plate_number}
-                    onChange={(e) => setFormData({ ...formData, plate_number: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, plate_number: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Customer
                   </label>
                   <select
                     value={formData.customer}
-                    onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, customer: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="">Pilih Customer</option>
-                    {customers.map(customer => (
-                      <option key={customer.id} value={customer.name}>{customer.name}</option>
+                    {customers.map((customer) => (
+                      <option key={customer.id} value={customer.name}>
+                        {customer.name}
+                      </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Lokasi
                   </label>
                   <select
                     value={formData.location_id}
-                    onChange={(e) => setFormData({ ...formData, location_id: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, location_id: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="">Pilih Lokasi</option>
-                    {locations.map(loc => (
-                      <option key={loc.id} value={loc.id}>{loc.name}</option>
+                    {locations.map((loc) => (
+                      <option key={loc.id} value={loc.id}>
+                        {loc.name}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-end space-x-3 pt-3 border-t border-gray-200">
                 <button
                   type="button"
@@ -467,4 +513,3 @@ const EquipmentMaster = () => {
 };
 
 export default EquipmentMaster;
-
