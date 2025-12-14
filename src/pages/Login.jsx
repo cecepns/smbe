@@ -156,7 +156,7 @@ const Login = () => {
           </form>
 
           {/* Demo Accounts */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
+          {/* <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-600 text-center mb-4">Demo Accounts:</p>
             <div className="space-y-2 text-xs">
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
@@ -195,7 +195,7 @@ const Login = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Footer */}
