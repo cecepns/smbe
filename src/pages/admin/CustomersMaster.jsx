@@ -176,20 +176,20 @@ const CustomersMaster = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Kode
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Nama
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Kontak
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Alamat
                 </th>
                 {canManage && (
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Aksi
                   </th>
                 )}
@@ -198,33 +198,33 @@ const CustomersMaster = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {customers.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-3 py-2 whitespace-nowrap text-xs font-medium text-gray-900">
                     {item.code || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
                     {item.name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
                     <div>{item.contact_person || '-'}</div>
                     <div className="text-xs text-gray-400">{item.contact_phone || item.contact_email || '-'}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
                     {item.address || '-'}
                   </td>
                   {canManage && (
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
+                    <td className="px-3 py-2 whitespace-nowrap text-right text-xs font-medium">
+                      <div className="flex items-center justify-end space-x-1">
                         <button
                           onClick={() => handleEdit(item)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-blue-600 hover:text-blue-900 p-1"
                         >
-                          <Edit className="h-5 w-5" />
+                          <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-900 p-1"
                         >
-                          <Trash2 className="h-5 w-5" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
@@ -239,33 +239,35 @@ const CustomersMaster = () => {
               <p className="text-gray-500">Tidak ada data customer</p>
             </div>
           )}
-          {total > 0 && (
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between px-6 py-4 bg-gray-50 space-y-3 md:space-y-0 border-t border-gray-200">
-              <div className="text-sm text-gray-600">
-                Menampilkan {startIndex}-{endIndex} dari {total} data
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page <= 1}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
-                >
-                  Sebelumnya
-                </button>
-                <span className="text-sm text-gray-700 px-4">
-                  Halaman {page} dari {totalPages}
-                </span>
-                <button
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={page >= totalPages}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
-                >
-                  Selanjutnya
-                </button>
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Pagination */}
+        {total > 0 && (
+          <div className="flex items-center justify-between mt-3">
+            <div className="text-sm text-gray-700">
+              Menampilkan {startIndex}-{endIndex} dari {total} data
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page <= 1}
+                className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-700 px-2">
+                Halaman {page} dari {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page >= totalPages}
+                className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showModal && (
