@@ -203,9 +203,9 @@ const UserManagement = () => {
         subtitle="Kelola user dan hak akses"
       />
 
-      <div className="p-6">
+      <div className="p-4">
         {/* Filters and Actions */}
-        <div className="mb-6 bg-white rounded-xl shadow-sm p-4">
+        <div className="mb-3 bg-white rounded-lg shadow-sm p-3">
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
             <div className="flex flex-wrap gap-4 flex-1">
               <div className="relative flex-1 min-w-[200px]">
@@ -261,9 +261,9 @@ const UserManagement = () => {
         {/* User Form Modal */}
         {showForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-gray-900">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 className="text-base font-bold text-gray-900">
                   {editingUser ? 'Edit User' : 'Tambah User Baru'}
                 </h3>
                 <button
@@ -273,8 +273,8 @@ const UserManagement = () => {
                   <X className="h-6 w-6" />
                 </button>
               </div>
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit} className="p-4 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Nama *
@@ -384,7 +384,7 @@ const UserManagement = () => {
                     </div>
                   )}
                 </div>
-                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <div className="flex justify-end space-x-3 pt-3 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={handleCloseForm}
@@ -406,7 +406,7 @@ const UserManagement = () => {
         )}
 
         {/* Users Table */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
